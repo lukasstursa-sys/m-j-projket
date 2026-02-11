@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import cz.stursa.speechnotes.R
 import cz.stursa.speechnotes.data.Note
 import cz.stursa.speechnotes.databinding.ItemNoteBinding
 import java.text.SimpleDateFormat
@@ -40,11 +39,23 @@ class NoteAdapter(
             binding.textNoteContent.text = note.content
             binding.textNoteDate.text = dateFormat.format(Date(note.updatedAt))
 
+            // Pin indicator
+            binding.textPinIndicator.visibility = if (note.isPinned) View.VISIBLE else View.GONE
+
+            // Label chip
             if (note.label.isNotEmpty()) {
                 binding.chipLabel.text = note.label
                 binding.chipLabel.visibility = View.VISIBLE
             } else {
                 binding.chipLabel.visibility = View.GONE
+            }
+
+            // Category chip
+            if (note.category.isNotEmpty()) {
+                binding.chipCategory.text = note.category
+                binding.chipCategory.visibility = View.VISIBLE
+            } else {
+                binding.chipCategory.visibility = View.GONE
             }
 
             binding.root.setOnClickListener { onNoteClick(note) }

@@ -3,9 +3,39 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_search"
+        android:title="@string/search_hint"
+        app:showAsAction="ifRoom"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
+
+    <item
         android:id="@+id/action_filter"
-        android:icon="@android:drawable/ic_menu_sort_by_size"
         android:title="@string/filter_by_label"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter_category"
+        android:title="@string/filter_by_category"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_backup"
+        android:title="@string/backup_export"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_restore"
+        android:title="@string/backup_import"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_dark_mode"
+        android:title="@string/dark_mode"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_whisper"
+        android:title="@string/whisper_settings"
+        app:showAsAction="never" />
 
 </menu>

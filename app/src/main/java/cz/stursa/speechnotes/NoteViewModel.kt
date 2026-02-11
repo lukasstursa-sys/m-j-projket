@@ -12,23 +12,58 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
 
     val allNotes: LiveData<List<Note>> = repository.allNotes
     val allLabels: LiveData<List<String>> = repository.allLabels
+    val allCategories: LiveData<List<String>> = repository.allCategories
 
     private val _selectedLabel = MutableLiveData<String?>()
+    private val _selectedCategory = MutableLiveData<String?>()
+    private val _searchQuery = MutableLiveData<String?>()
 
-    val filteredNotes: LiveData<List<Note>> = _selectedLabel.switchMap { label ->
-        if (label.isNullOrEmpty()) {
-            repository.allNotes
-        } else {
-            repository.getNotesByLabel(label)
+    // Combined filter: search > category > label > all
+    val filteredNotes: LiveData<List<Note>> = MediatorLiveData<List<Note>>().apply {
+        fun update() {
+            val query = _searchQuery.value
+            val label = _selectedLabel.value
+            val category = _selectedCategory.value
+
+            val source = when {
+                !query.isNullOrBlank() -> repository.searchNotes(query)
+                !category.isNullOrEmpty() -> repository.getNotesByCategory(category)
+                !label.isNullOrEmpty() -> repository.getNotesByLabel(label)
+                else -> repository.allNotes
+            }
+
+            // Remove old sources and add new one
+            addSource(source) { value = it }
         }
+
+        addSource(_searchQuery) { update() }
+        addSource(_selectedLabel) { update() }
+        addSource(_selectedCategory) { update() }
+
+        // Initial load
+        addSource(repository.allNotes) { value = it }
     }
 
     init {
         _selectedLabel.value = null
+        _selectedCategory.value = null
+        _searchQuery.value = null
     }
 
     fun setLabelFilter(label: String?) {
+        _selectedCategory.value = null
+        _searchQuery.value = null
         _selectedLabel.value = label
+    }
+
+    fun setCategoryFilter(category: String?) {
+        _selectedLabel.value = null
+        _searchQuery.value = null
+        _selectedCategory.value = category
+    }
+
+    fun setSearchQuery(query: String?) {
+        _searchQuery.value = query
     }
 
     suspend fun getNoteById(id: Long): Note? {
@@ -57,6 +92,12 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     fun deleteNoteById(id: Long) {
         viewModelScope.launch {
             repository.deleteById(id)
+        }
+    }
+
+    fun togglePin(note: Note) {
+        viewModelScope.launch {
+            repository.togglePin(note.id, !note.isPinned)
         }
     }
 }

@@ -6,9 +6,18 @@ class NoteRepository(private val noteDao: NoteDao) {
 
     val allNotes: LiveData<List<Note>> = noteDao.getAllNotes()
     val allLabels: LiveData<List<String>> = noteDao.getAllLabels()
+    val allCategories: LiveData<List<String>> = noteDao.getAllCategories()
 
     fun getNotesByLabel(label: String): LiveData<List<Note>> {
         return noteDao.getNotesByLabel(label)
+    }
+
+    fun getNotesByCategory(category: String): LiveData<List<Note>> {
+        return noteDao.getNotesByCategory(category)
+    }
+
+    fun searchNotes(query: String): LiveData<List<Note>> {
+        return noteDao.searchNotes(query)
     }
 
     suspend fun getNoteById(id: Long): Note? {
@@ -29,5 +38,9 @@ class NoteRepository(private val noteDao: NoteDao) {
 
     suspend fun deleteById(id: Long) {
         noteDao.deleteById(id)
+    }
+
+    suspend fun togglePin(id: Long, isPinned: Boolean) {
+        noteDao.setPinned(id, isPinned)
     }
 }

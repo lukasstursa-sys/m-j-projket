@@ -10,6 +10,8 @@ data class Note(
     val title: String,
     val content: String,
     val label: String = "",
+    val category: String = "",
+    val isPinned: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

@@ -11,6 +11,7 @@
     <string name="note_title_hint">Název poznámky</string>
     <string name="note_content_hint">Text poznámky…</string>
     <string name="label_hint">Štítek (volitelné)</string>
+    <string name="category_hint">Kategorie / složka (volitelné)</string>
     <string name="no_notes">Zatím nemáte žádné poznámky.\nKlepněte na mikrofon a začněte mluvit.</string>
     <string name="all_notes">Všechny poznámky</string>
     <string name="confirm_delete">Opravdu chcete smazat tuto poznámku?</string>
@@ -22,6 +23,25 @@
     <string name="permission_required">Pro rozpoznávání řeči je potřeba povolení mikrofonu</string>
     <string name="new_note">Nová poznámka</string>
     <string name="filter_by_label">Filtrovat podle štítku</string>
+    <string name="filter_by_category">Filtrovat podle kategorie</string>
     <string name="share_note">Sdílet</string>
     <string name="add_label">Přidat štítek</string>
+    <string name="search_hint">Hledat v poznámkách…</string>
+    <string name="settings">Nastavení</string>
+    <string name="pin_note">Připnout</string>
+    <string name="unpin_note">Odepnout</string>
+    <string name="pinned">Připnuto</string>
+    <string name="backup_export">Zálohovat databázi</string>
+    <string name="backup_import">Obnovit ze zálohy</string>
+    <string name="dark_mode">Tmavý režim</string>
+    <string name="dark_mode_system">Dle systému</string>
+    <string name="dark_mode_light">Světlý</string>
+    <string name="dark_mode_dark">Tmavý</string>
+    <string name="insert_timestamp">Vložit časovou značku</string>
+    <string name="translate">Přeložit</string>
+    <string name="markdown_preview">Náhled Markdown</string>
+    <string name="background_recording">Nahrávání na pozadí</string>
+    <string name="whisper_settings">Nastavení Whisper (offline)</string>
+    <string name="widget_description">Rychlé spuštění nahrávání nebo nové poznámky</string>
+    <string name="all_categories">Všechny kategorie</string>
 </resources>

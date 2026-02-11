@@ -9,13 +9,6 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 
-/**
- * AI text processor that connects to an OpenAI-compatible API.
- * Supports summarization, bullet points, grammar correction, and custom prompts.
- *
- * To use: set your API key in the app settings or pass it directly.
- * Supports OpenAI, or any compatible API (e.g. local Ollama, LM Studio).
- */
 class AiTextProcessor(
     private val apiKey: String,
     private val apiUrl: String = "https://api.openai.com/v1/chat/completions",
@@ -36,6 +29,11 @@ class AiTextProcessor(
             "Jsi pomocný asistent. Uživatel ti dá český text z přepisu řeči. " +
             "Oprav gramatiku, interpunkci a překlepy. Zachovej původní význam. " +
             "Odpověz pouze opraveným textem, nic dalšího."
+        ),
+        TRANSLATE(
+            "Jsi pomocný asistent a překladatel. Uživatel ti dá český text. " +
+            "Přelož ho do angličtiny. Zachovej formátování. " +
+            "Odpověz pouze překladem, nic dalšího."
         ),
         CUSTOM("")
     }
@@ -118,5 +116,11 @@ class AiTextProcessor(
                 )
             }
         }
+    }
+
+    suspend fun translateTo(text: String, targetLanguage: String): Result {
+        val prompt = "Jsi překladatel. Přelož následující text do jazyka: $targetLanguage. " +
+            "Zachovej formátování. Odpověz pouze překladem."
+        return process(text, Action.CUSTOM, prompt)
     }
 }
