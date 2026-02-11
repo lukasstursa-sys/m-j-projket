@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hlasové Poznámky</string>
+    <string name="start_recording">Začít nahrávat</string>
+    <string name="stop_recording">Zastavit nahrávání</string>
+    <string name="listening">Poslouchám…</string>
+    <string name="tap_to_speak">Klepněte na mikrofon a mluvte česky</string>
+    <string name="save_note">Uložit poznámku</string>
+    <string name="delete_note">Smazat poznámku</string>
+    <string name="edit_note">Upravit poznámku</string>
+    <string name="note_title_hint">Název poznámky</string>
+    <string name="note_content_hint">Text poznámky…</string>
+    <string name="label_hint">Štítek (volitelné)</string>
+    <string name="no_notes">Zatím nemáte žádné poznámky.\nKlepněte na mikrofon a začněte mluvit.</string>
+    <string name="all_notes">Všechny poznámky</string>
+    <string name="confirm_delete">Opravdu chcete smazat tuto poznámku?</string>
+    <string name="yes">Ano</string>
+    <string name="no">Ne</string>
+    <string name="cancel">Zrušit</string>
+    <string name="note_saved">Poznámka uložena</string>
+    <string name="note_deleted">Poznámka smazána</string>
+    <string name="permission_required">Pro rozpoznávání řeči je potřeba povolení mikrofonu</string>
+    <string name="new_note">Nová poznámka</string>
+    <string name="filter_by_label">Filtrovat podle štítku</string>
+    <string name="share_note">Sdílet</string>
+    <string name="add_label">Přidat štítek</string>
+</resources>
