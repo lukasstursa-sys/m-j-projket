@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.IBinder
 import android.view.View
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -590,15 +591,9 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
 
     private fun showAiSetupDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_ai_settings, null)
-        val editApiKey = view.findViewById<com.google.android.material.textfield.TextInputEditText>(
-            R.id.editApiKey
-        )
-        val editApiUrl = view.findViewById<com.google.android.material.textfield.TextInputEditText>(
-            R.id.editApiUrl
-        )
-        val editModel = view.findViewById<com.google.android.material.textfield.TextInputEditText>(
-            R.id.editModel
-        )
+        val editApiKey = view.findViewById<EditText>(R.id.editApiKey)
+        val editApiUrl = view.findViewById<EditText>(R.id.editApiUrl)
+        val editModel = view.findViewById<EditText>(R.id.editModel)
 
         editApiKey.setText(aiSettings.apiKey)
         editApiUrl.setText(aiSettings.apiUrl)
