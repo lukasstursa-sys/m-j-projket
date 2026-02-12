@@ -17,23 +17,43 @@ class AiTextProcessor(
 
     enum class Action(val systemPrompt: String) {
         SUMMARIZE(
-            "Jsi pomocný asistent. Uživatel ti dá český text. " +
-            "Vytvoř stručné shrnutí v češtině. Odpověz pouze shrnutím, nic dalšího."
+            "Jsi pomocny asistent. Uzivatel ti da cesky text. " +
+            "Vytvor strucne shrnuti v cestine. Odpovez pouze shrnutim, nic dalsiho."
         ),
         BULLET_POINTS(
-            "Jsi pomocný asistent. Uživatel ti dá český text. " +
-            "Převeď ho na přehledné odrážky v češtině. Každý bod začni na novém řádku znakem •. " +
-            "Odpověz pouze odrážkami, nic dalšího."
+            "Jsi pomocny asistent. Uzivatel ti da cesky text. " +
+            "Preved ho na prehledne odrazky v cestine. Kazdy bod zacni na novem radku znakem \u2022. " +
+            "Odpovez pouze odrazkami, nic dalsiho."
         ),
         CORRECT_GRAMMAR(
-            "Jsi pomocný asistent. Uživatel ti dá český text z přepisu řeči. " +
-            "Oprav gramatiku, interpunkci a překlepy. Zachovej původní význam. " +
-            "Odpověz pouze opraveným textem, nic dalšího."
+            "Jsi pomocny asistent. Uzivatel ti da cesky text z prepisu reci. " +
+            "Oprav gramatiku, interpunkci a preklepy. Zachovej puvodni vyznam. " +
+            "Odpovez pouze opravenym textem, nic dalsiho."
         ),
         TRANSLATE(
-            "Jsi pomocný asistent a překladatel. Uživatel ti dá český text. " +
-            "Přelož ho do angličtiny. Zachovej formátování. " +
-            "Odpověz pouze překladem, nic dalšího."
+            "Jsi pomocny asistent a prekladatel. Uzivatel ti da cesky text. " +
+            "Preloz ho do anglictiny. Zachovej formatovani. " +
+            "Odpovez pouze prekladem, nic dalsiho."
+        ),
+        STRUCTURE(
+            "Jsi pomocny asistent. Uzivatel ti da cesky text z hlasoveho prepisu. " +
+            "Strukturuj text pro maximalni prehlednost: " +
+            "1. Pridej tucne nadpisy (pouzij **text**) " +
+            "2. Pridej odrazky kde to dava smysl " +
+            "3. Pridej mezery mezi odstavce " +
+            "4. Vloz symboly a emoji pro lepsi orientaci " +
+            "5. Zachovej veskerou informaci " +
+            "Odpovez pouze strukturovanym textem."
+        ),
+        SMART_REWRITE(
+            "Jsi pomocny asistent. Uzivatel ti da cesky text z hlasoveho prepisu. " +
+            "1. Prepis text srozumitelneji a profesionalneji " +
+            "2. Pridej strukturu - nadpisy, odrazky, cislovani " +
+            "3. Na konec navrhni: " +
+            "   SLOZKA: [navrhni vhodnou slozku z: Pracovni, Doma, Nakup, Osobni, Zdravi, Finance, Diar, Jidlo, Zahrada, Narozeniny, Udalosti] " +
+            "   KATEGORIE: [navrhni kategorii] " +
+            "   NAZEV: [navrhni kratky nazev poznamky] " +
+            "Odpovez preformatovanym textem a navrhy."
         ),
         CUSTOM("")
     }
@@ -47,11 +67,7 @@ class AiTextProcessor(
     suspend fun process(text: String, action: Action, customPrompt: String = ""): Result {
         return withContext(Dispatchers.IO) {
             try {
-                val systemPrompt = if (action == Action.CUSTOM) {
-                    customPrompt
-                } else {
-                    action.systemPrompt
-                }
+                val systemPrompt = if (action == Action.CUSTOM) customPrompt else action.systemPrompt
 
                 val requestBody = JSONObject().apply {
                     put("model", model)
@@ -102,25 +118,22 @@ class AiTextProcessor(
                     val error = BufferedReader(InputStreamReader(errorStream)).use {
                         it.readText()
                     }
-                    Result(
-                        success = false,
-                        text = "",
-                        error = "HTTP $responseCode: $error"
-                    )
+                    Result(success = false, text = "", error = "HTTP $responseCode: $error")
                 }
             } catch (e: Exception) {
-                Result(
-                    success = false,
-                    text = "",
-                    error = e.message ?: "Neznámá chyba"
-                )
+                Result(success = false, text = "", error = e.message ?: "Neznama chyba")
             }
         }
     }
 
     suspend fun translateTo(text: String, targetLanguage: String): Result {
-        val prompt = "Jsi překladatel. Přelož následující text do jazyka: $targetLanguage. " +
-            "Zachovej formátování. Odpověz pouze překladem."
+        val prompt = "Jsi prekladatel. Preloz nasledujici text do jazyka: $targetLanguage. " +
+            "Zachovej formatovani. Odpovez pouze prekladem."
         return process(text, Action.CUSTOM, prompt)
+    }
+
+    fun shouldOfferStructuring(text: String): Boolean {
+        val wordCount = text.split("\\s+".toRegex()).size
+        return wordCount > 50
     }
 }

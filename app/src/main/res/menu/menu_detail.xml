@@ -13,13 +13,28 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/action_set_reminder"
+        android:title="@string/set_reminder"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_send_calendar"
+        android:title="@string/send_to_calendar"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_send_chat"
+        android:title="@string/send_to_chat"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_markdown_preview"
         android:title="@string/markdown_preview"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_copy"
-        android:title="Kopírovat text"
+        android:title="Kopirovat text"
         app:showAsAction="never" />
 
     <item
@@ -29,12 +44,12 @@
 
     <item
         android:id="@+id/action_ai_summarize"
-        android:title="AI: Shrnutí"
+        android:title="AI: Shrnuti"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_ai_bullet_points"
-        android:title="AI: Odrážky"
+        android:title="AI: Odrazky"
         app:showAsAction="never" />
 
     <item
@@ -43,8 +58,18 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_ai_structure"
+        android:title="@string/ai_structure"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_ai_smart_rewrite"
+        android:title="@string/ai_smart_rewrite"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_ai_translate"
-        android:title="AI: Přeložit"
+        android:title="AI: Prelozit"
         app:showAsAction="never" />
 
     <item

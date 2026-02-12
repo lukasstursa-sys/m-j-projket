@@ -1,6 +1,7 @@
 package cz.stursa.speechnotes
 
 import android.Manifest
+import android.app.DatePickerDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ComponentName
@@ -8,11 +9,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.os.Environment
 import android.os.IBinder
 import android.view.View
-import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -22,7 +26,9 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import cz.stursa.speechnotes.ai.AiSettingsManager
 import cz.stursa.speechnotes.ai.AiTextProcessor
+import cz.stursa.speechnotes.data.FolderManager
 import cz.stursa.speechnotes.data.Note
+import cz.stursa.speechnotes.data.ReminderManager
 import cz.stursa.speechnotes.databinding.ActivityNoteDetailBinding
 import cz.stursa.speechnotes.markdown.MarkdownRenderer
 import cz.stursa.speechnotes.service.SpeechRecordingService
@@ -30,6 +36,7 @@ import cz.stursa.speechnotes.speech.CzechSpeechRecognizer
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -43,13 +50,18 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
     private val viewModel: NoteViewModel by viewModels()
     private lateinit var speechRecognizer: CzechSpeechRecognizer
     private lateinit var aiSettings: AiSettingsManager
+    private lateinit var folderManager: FolderManager
 
     private var currentNote: Note? = null
     private var isRecording = false
     private var isMarkdownPreview = false
+    private var hasRecordedBefore = false
+    private var selectedEmoji = ""
+    private var selectedColor = 0
     private var backgroundService: SpeechRecordingService? = null
     private var serviceBound = false
 
+    private val dateTimeFormat = SimpleDateFormat("d.M.yyyy HH:mm", Locale("cs", "CZ"))
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     private val requestPermissionLauncher =
@@ -105,10 +117,15 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
 
         speechRecognizer = CzechSpeechRecognizer(this, this)
         aiSettings = AiSettingsManager(this)
+        folderManager = FolderManager(this)
 
         setupToolbar()
         setupMicButton()
         setupSaveButton()
+        setupFolderPicker()
+        setupEmojiPicker()
+        setupColorPicker()
+        setupResumeButton()
         loadNote()
     }
 
@@ -118,12 +135,17 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
             when (menuItem.itemId) {
                 R.id.action_share -> { shareCurrentNote(); true }
                 R.id.action_timestamp -> { insertTimestamp(); true }
+                R.id.action_set_reminder -> { showReminderPicker(); true }
+                R.id.action_send_calendar -> { sendToCalendar(); true }
+                R.id.action_send_chat -> { sendToChat(); true }
                 R.id.action_markdown_preview -> { toggleMarkdownPreview(); true }
                 R.id.action_copy -> { copyCurrentNote(); true }
                 R.id.action_background_record -> { toggleBackgroundRecording(); true }
                 R.id.action_ai_summarize -> { processWithAi(AiTextProcessor.Action.SUMMARIZE); true }
                 R.id.action_ai_bullet_points -> { processWithAi(AiTextProcessor.Action.BULLET_POINTS); true }
                 R.id.action_ai_correct -> { processWithAi(AiTextProcessor.Action.CORRECT_GRAMMAR); true }
+                R.id.action_ai_structure -> { processWithAi(AiTextProcessor.Action.STRUCTURE); true }
+                R.id.action_ai_smart_rewrite -> { processWithAi(AiTextProcessor.Action.SMART_REWRITE); true }
                 R.id.action_ai_translate -> { showTranslateDialog(); true }
                 R.id.action_export_txt -> { exportAsTxt(); true }
                 R.id.action_delete -> { confirmDelete(); true }
@@ -148,6 +170,83 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         binding.btnSave.setOnClickListener { saveNote() }
     }
 
+    private fun setupFolderPicker() {
+        binding.editFolder.setOnClickListener {
+            val folders = folderManager.getFolders()
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.folder_hint)
+                .setItems(folders.toTypedArray()) { _, which ->
+                    binding.editFolder.setText(folders[which])
+                }
+                .show()
+        }
+    }
+
+    private fun setupEmojiPicker() {
+        binding.btnEmoji.setOnClickListener {
+            val items = MainActivity.EMOJI_LIST.toTypedArray()
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.choose_emoji)
+                .setItems(items) { _, which ->
+                    selectedEmoji = items[which]
+                    binding.btnEmoji.text = selectedEmoji
+                }
+                .show()
+        }
+    }
+
+    private fun setupColorPicker() {
+        val container = binding.colorContainer
+        container.removeAllViews()
+
+        MainActivity.NOTE_COLORS.forEach { color ->
+            val view = View(this).apply {
+                val size = (36 * resources.displayMetrics.density).toInt()
+                layoutParams = LinearLayout.LayoutParams(size, size).apply {
+                    setMargins(8, 8, 8, 8)
+                }
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    if (color == 0) {
+                        setColor(Color.WHITE)
+                        setStroke(2, Color.GRAY)
+                    } else {
+                        setColor(color)
+                    }
+                }
+                setOnClickListener {
+                    selectedColor = color
+                    // Reset all borders
+                    for (i in 0 until container.childCount) {
+                        val child = container.getChildAt(i)
+                        (child.background as? GradientDrawable)?.setStroke(
+                            if (child == this) 4 else 0, Color.BLACK
+                        )
+                    }
+                    (this.background as? GradientDrawable)?.setStroke(4, Color.BLACK)
+                }
+            }
+            container.addView(view)
+        }
+    }
+
+    private fun setupResumeButton() {
+        binding.btnResumeRecording.setOnClickListener {
+            // Resume recording - append timestamp and continue
+            val timestamp = "\n[${dateTimeFormat.format(Date())}] "
+            val editText = binding.editContent
+            val current = editText.text.toString()
+            editText.setText("$current$timestamp")
+            editText.setSelection(editText.text?.length ?: 0)
+
+            // Start recording
+            if (!isRecording) {
+                toggleRecording()
+            }
+            binding.btnResumeRecording.visibility = View.GONE
+        }
+    }
+
     private fun loadNote() {
         val noteId = intent.getLongExtra(EXTRA_NOTE_ID, -1)
         if (noteId != -1L) {
@@ -158,6 +257,12 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
                     binding.editContent.setText(note.content)
                     binding.editLabel.setText(note.label)
                     binding.editCategory.setText(note.category)
+                    binding.editFolder.setText(note.folder)
+                    selectedEmoji = note.emoji
+                    selectedColor = note.color
+                    if (note.emoji.isNotEmpty()) {
+                        binding.btnEmoji.text = note.emoji
+                    }
                     binding.toolbar.title = getString(R.string.edit_note)
                 }
             }
@@ -170,9 +275,12 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         if (isRecording) {
             speechRecognizer.stopListening()
             isRecording = false
+            hasRecordedBefore = true
+            binding.btnResumeRecording.visibility = View.VISIBLE
         } else {
             speechRecognizer.startListening()
             isRecording = true
+            binding.btnResumeRecording.visibility = View.GONE
         }
         updateMicButton()
     }
@@ -192,7 +300,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
     // --- Timestamp ---
 
     private fun insertTimestamp() {
-        val timestamp = "[${timeFormat.format(Date())}] "
+        val timestamp = "\n[${dateTimeFormat.format(Date())}] "
         val editText = binding.editContent
         val start = editText.selectionStart.coerceAtLeast(0)
         val text = editText.text.toString()
@@ -227,12 +335,78 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
             stopService(Intent(this, SpeechRecordingService::class.java))
             unbindService(serviceConnection)
             serviceBound = false
-            Toast.makeText(this, "Nahrávání na pozadí zastaveno", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Nahravani na pozadi zastaveno", Toast.LENGTH_SHORT).show()
         } else {
             val serviceIntent = Intent(this, SpeechRecordingService::class.java)
             ContextCompat.startForegroundService(this, serviceIntent)
             bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
-            Toast.makeText(this, "Nahrávání na pozadí spuštěno", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Nahravani na pozadi spusteno", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // --- Reminder ---
+
+    private fun showReminderPicker() {
+        val cal = Calendar.getInstance()
+        DatePickerDialog(this, { _, year, month, day ->
+            val timeCal = Calendar.getInstance().apply { set(year, month, day) }
+            android.app.TimePickerDialog(this, { _, hour, minute ->
+                timeCal.set(Calendar.HOUR_OF_DAY, hour)
+                timeCal.set(Calendar.MINUTE, minute)
+                val reminderTime = timeCal.timeInMillis
+
+                if (currentNote != null) {
+                    viewModel.setReminder(currentNote!!.id, reminderTime)
+                    val reminderManager = ReminderManager(this)
+                    reminderManager.scheduleReminder(
+                        currentNote!!.id,
+                        binding.editTitle.text.toString(),
+                        binding.editContent.text.toString(),
+                        reminderTime
+                    )
+                }
+
+                Toast.makeText(this, R.string.reminder_set, Toast.LENGTH_SHORT).show()
+            }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show()
+        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+    }
+
+    // --- Google Calendar ---
+
+    private fun sendToCalendar() {
+        val title = binding.editTitle.text.toString()
+        val content = binding.editContent.text.toString()
+        val intent = Intent(Intent.ACTION_INSERT).apply {
+            data = android.provider.CalendarContract.Events.CONTENT_URI
+            putExtra(android.provider.CalendarContract.Events.TITLE, title)
+            putExtra(android.provider.CalendarContract.Events.DESCRIPTION, content)
+        }
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Google Kalendar neni dostupny", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // --- Send to Chat ---
+
+    private fun sendToChat() {
+        val title = binding.editTitle.text.toString()
+        val content = binding.editContent.text.toString()
+        val shareText = "$title\n\n$content"
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, shareText)
+            setPackage("com.google.android.apps.messaging")
+        }
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            val fallback = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, shareText)
+            }
+            startActivity(Intent.createChooser(fallback, getString(R.string.send_to_chat)))
         }
     }
 
@@ -240,14 +414,14 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
 
     private fun showTranslateDialog() {
         val languages = arrayOf(
-            "Angličtina", "Němčina", "Francouzština",
-            "Španělština", "Italština", "Polština",
-            "Slovenština", "Ruština"
+            "Anglictina", "Nemcina", "Francouzstina",
+            "Spanelstina", "Italstina", "Polstina",
+            "Slovenstina", "Rustina"
         )
         val langCodes = arrayOf(
-            "angličtina", "němčina", "francouzština",
-            "španělština", "italština", "polština",
-            "slovenština", "ruština"
+            "anglictina", "nemcina", "francouzstina",
+            "spanelstina", "italstina", "polstina",
+            "slovenstina", "rustina"
         )
 
         MaterialAlertDialogBuilder(this)
@@ -259,10 +433,10 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
                 }
                 val content = binding.editContent.text.toString()
                 if (content.isEmpty()) {
-                    Toast.makeText(this, "Poznámka je prázdná", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Poznamka je prazdna", Toast.LENGTH_SHORT).show()
                     return@setItems
                 }
-                Toast.makeText(this, "Překládám…", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Prekladam\u2026", Toast.LENGTH_SHORT).show()
                 lifecycleScope.launch {
                     val processor = aiSettings.createProcessor()
                     val result = processor.translateTo(content, langCodes[which])
@@ -279,31 +453,62 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         val content = binding.editContent.text.toString().trim()
         val label = binding.editLabel.text.toString().trim()
         val category = binding.editCategory.text.toString().trim()
+        val folder = binding.editFolder.text.toString().trim()
 
         if (title.isEmpty() && content.isEmpty()) {
-            Toast.makeText(this, "Zadejte název nebo text poznámky", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Zadejte nazev nebo text poznamky", Toast.LENGTH_SHORT).show()
             return
         }
 
         val finalTitle = title.ifEmpty {
             content.split(" ").take(5).joinToString(" ").let {
-                if (it.length > 40) it.substring(0, 40) + "…" else it
+                if (it.length > 40) it.substring(0, 40) + "\u2026" else it
             }
+        }
+
+        // When adding content to existing note, add timestamp
+        val finalContent = if (currentNote != null && content != currentNote!!.content && content.length > currentNote!!.content.length) {
+            val addedPart = content.substring(currentNote!!.content.length).trimStart()
+            if (addedPart.isNotEmpty() && !addedPart.startsWith("[")) {
+                val timestamp = "\n[${dateTimeFormat.format(Date())}] "
+                currentNote!!.content + timestamp + addedPart
+            } else {
+                content
+            }
+        } else {
+            content
         }
 
         if (currentNote != null) {
             viewModel.updateNote(
                 currentNote!!.copy(
                     title = finalTitle,
-                    content = content,
+                    content = finalContent,
                     label = label,
                     category = category,
+                    folder = folder,
+                    emoji = selectedEmoji,
+                    color = selectedColor,
                     updatedAt = System.currentTimeMillis()
                 )
             )
         } else {
+            val dateTimeStr = dateTimeFormat.format(Date())
+            val contentWithTimestamp = if (!finalContent.startsWith("[")) {
+                "[$dateTimeStr]\n$finalContent"
+            } else {
+                finalContent
+            }
             viewModel.insertNote(
-                Note(title = finalTitle, content = content, label = label, category = category)
+                Note(
+                    title = finalTitle,
+                    content = contentWithTimestamp,
+                    label = label,
+                    category = category,
+                    folder = folder,
+                    emoji = selectedEmoji,
+                    color = selectedColor
+                )
             )
         }
 
@@ -316,11 +521,13 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         val content = binding.editContent.text.toString()
         val label = binding.editLabel.text.toString()
         val category = binding.editCategory.text.toString()
+        val folder = binding.editFolder.text.toString()
 
         val shareText = buildString {
             appendLine(title)
             if (label.isNotEmpty()) appendLine("[$label]")
             if (category.isNotEmpty()) appendLine("Kategorie: $category")
+            if (folder.isNotEmpty()) appendLine("Slozka: $folder")
             appendLine()
             append(content)
         }
@@ -336,7 +543,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         val content = binding.editContent.text.toString()
         val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("note", content))
-        Toast.makeText(this, "Text zkopírován do schránky", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Text zkopirovan do schranky", Toast.LENGTH_SHORT).show()
     }
 
     private fun processWithAi(action: AiTextProcessor.Action) {
@@ -346,10 +553,10 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         }
         val content = binding.editContent.text.toString()
         if (content.isEmpty()) {
-            Toast.makeText(this, "Poznámka je prázdná", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Poznamka je prazdna", Toast.LENGTH_SHORT).show()
             return
         }
-        Toast.makeText(this, "Zpracovávám s AI…", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Zpracovavam s AI\u2026", Toast.LENGTH_SHORT).show()
         lifecycleScope.launch {
             val result = aiSettings.createProcessor().process(content, action)
             showAiResult(result)
@@ -359,19 +566,20 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
     private fun showAiResult(result: AiTextProcessor.Result) {
         if (result.success) {
             MaterialAlertDialogBuilder(this@NoteDetailActivity)
-                .setTitle("AI výsledek")
+                .setTitle("AI vysledek")
                 .setMessage(result.text)
                 .setPositiveButton("Nahradit text") { _, _ ->
                     binding.editContent.setText(result.text)
                 }
-                .setNeutralButton("Připojit na konec") { _, _ ->
+                .setNeutralButton("Pripojit na konec") { _, _ ->
                     val current = binding.editContent.text.toString()
-                    binding.editContent.setText("$current\n\n--- AI ---\n${result.text}")
+                    val timestamp = dateTimeFormat.format(Date())
+                    binding.editContent.setText("$current\n\n--- AI [$timestamp] ---\n${result.text}")
                 }
-                .setNegativeButton("Kopírovat") { _, _ ->
+                .setNegativeButton("Kopirovat") { _, _ ->
                     val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
                     clipboard.setPrimaryClip(ClipData.newPlainText("ai", result.text))
-                    Toast.makeText(this, "Zkopírováno do schránky", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Zkopirovano do schranky", Toast.LENGTH_SHORT).show()
                 }
                 .show()
         } else {
@@ -396,13 +604,13 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         editModel.setText(aiSettings.model)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("Nastavení AI")
+            .setTitle("Nastaveni AI")
             .setView(view)
-            .setPositiveButton("Uložit") { _, _ ->
+            .setPositiveButton("Ulozit") { _, _ ->
                 aiSettings.apiKey = editApiKey.text.toString().trim()
                 aiSettings.apiUrl = editApiUrl.text.toString().trim()
                 aiSettings.model = editModel.text.toString().trim()
-                Toast.makeText(this, "Nastavení AI uloženo", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Nastaveni AI ulozeno", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
@@ -412,7 +620,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         val title = binding.editTitle.text.toString().ifEmpty { "poznamka" }
         val content = binding.editContent.text.toString()
         try {
-            val fileName = title.replace(Regex("[^a-zA-Z0-9áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ ]"), "_")
+            val fileName = title.replace(Regex("[^a-zA-Z0-9 ]"), "_")
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             val file = File(downloadsDir, "$fileName.txt")
             file.writeText(buildString {
@@ -421,7 +629,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
                 appendLine()
                 append(content)
             })
-            Toast.makeText(this, "Exportováno do: ${file.absolutePath}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Exportovano do: ${file.absolutePath}", Toast.LENGTH_LONG).show()
         } catch (e: Exception) {
             Toast.makeText(this, "Chyba exportu: ${e.message}", Toast.LENGTH_LONG).show()
         }
@@ -431,7 +639,12 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         if (currentNote == null) { finish(); return }
         MaterialAlertDialogBuilder(this)
             .setMessage(R.string.confirm_delete)
-            .setPositiveButton(R.string.yes) { _, _ ->
+            .setPositiveButton(R.string.move_to_trash) { _, _ ->
+                viewModel.softDeleteNote(currentNote!!)
+                Toast.makeText(this, R.string.move_to_trash, Toast.LENGTH_SHORT).show()
+                finish()
+            }
+            .setNeutralButton(R.string.permanently_delete) { _, _ ->
                 viewModel.deleteNoteById(currentNote!!.id)
                 Toast.makeText(this, R.string.note_deleted, Toast.LENGTH_SHORT).show()
                 finish()
@@ -454,19 +667,43 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
             binding.editContent.setSelection(binding.editContent.text?.length ?: 0)
             binding.textDetailStatus.text = getString(R.string.tap_to_speak)
             if (isRecording) speechRecognizer.startListening()
+
+            // Check if text is long enough to offer AI structuring
+            val fullText = binding.editContent.text.toString()
+            val processor = AiTextProcessor("", "", "")
+            if (processor.shouldOfferStructuring(fullText) && aiSettings.isConfigured()) {
+                offerAiStructuring()
+            }
         }
+    }
+
+    private fun offerAiStructuring() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("AI asistent")
+            .setMessage("Text je delsi. Chcete ho nechat zpracovat AI?")
+            .setPositiveButton(getString(R.string.ai_structure)) { _, _ ->
+                processWithAi(AiTextProcessor.Action.STRUCTURE)
+            }
+            .setNeutralButton(getString(R.string.ai_smart_rewrite)) { _, _ ->
+                processWithAi(AiTextProcessor.Action.SMART_REWRITE)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     override fun onError(errorMessage: String) {
         runOnUiThread {
-            if ((errorMessage.contains("Řeč nebyla rozpoznána") ||
-                 errorMessage.contains("Nebyla detekována řeč")) && isRecording
+            if ((errorMessage.contains("nebyla rozpoznana", ignoreCase = true) ||
+                 errorMessage.contains("Nebyla detekovana", ignoreCase = true)) && isRecording
             ) {
+                // Auto-restart on silence - better recording continuity
                 speechRecognizer.startListening()
             } else {
                 Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
                 isRecording = false
+                hasRecordedBefore = true
                 updateMicButton()
+                binding.btnResumeRecording.visibility = View.VISIBLE
             }
         }
     }

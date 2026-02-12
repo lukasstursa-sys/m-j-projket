@@ -11,4 +11,24 @@
     <color name="on_surface_secondary">#757575</color>
     <color name="recording_red">#D32F2F</color>
     <color name="label_chip">#E3F2FD</color>
+
+    <!-- Note colors palette -->
+    <color name="note_red">#EF5350</color>
+    <color name="note_pink">#EC407A</color>
+    <color name="note_purple">#AB47BC</color>
+    <color name="note_blue">#42A5F5</color>
+    <color name="note_cyan">#26C6DA</color>
+    <color name="note_green">#66BB6A</color>
+    <color name="note_yellow">#FFEE58</color>
+    <color name="note_orange">#FFA726</color>
+    <color name="note_brown">#8D6E63</color>
+    <color name="note_grey">#BDBDBD</color>
+
+    <!-- Folder colors -->
+    <color name="folder_work">#1565C0</color>
+    <color name="folder_home">#2E7D32</color>
+    <color name="folder_shop">#E65100</color>
+    <color name="folder_personal">#6A1B9A</color>
+    <color name="folder_health">#C62828</color>
+    <color name="folder_finance">#F9A825</color>
 </resources>

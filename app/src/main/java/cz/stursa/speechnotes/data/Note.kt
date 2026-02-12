@@ -11,7 +11,12 @@ data class Note(
     val content: String,
     val label: String = "",
     val category: String = "",
+    val folder: String = "",
+    val emoji: String = "",
+    val color: Int = 0,
     val isPinned: Boolean = false,
+    val isDeleted: Boolean = false,
+    val reminderTime: Long = 0L,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

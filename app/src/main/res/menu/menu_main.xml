@@ -9,6 +9,16 @@
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
 
     <item
+        android:id="@+id/action_sort"
+        android:title="@string/sort_notes"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter_folder"
+        android:title="@string/filter_by_folder"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_filter"
         android:title="@string/filter_by_label"
         app:showAsAction="never" />
@@ -16,6 +26,31 @@
     <item
         android:id="@+id/action_filter_category"
         android:title="@string/filter_by_category"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter_date"
+        android:title="@string/filter_by_date"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_trash"
+        android:title="@string/trash"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_statistics"
+        android:title="@string/statistics"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_manage_folders"
+        android:title="@string/manage_folders"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_display_settings"
+        android:title="@string/display_settings"
         app:showAsAction="never" />
 
     <item

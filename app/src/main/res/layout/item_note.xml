@@ -22,7 +22,6 @@
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <!-- Pin indicator -->
             <TextView
                 android:id="@+id/textPinIndicator"
                 android:layout_width="wrap_content"
@@ -42,6 +41,23 @@
                 android:textStyle="bold"
                 android:maxLines="1"
                 android:ellipsize="end" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFolder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="11sp"
+                android:visibility="gone"
+                app:chipMinHeight="22dp"
+                app:chipBackgroundColor="#FFF3E0" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipCategory"
@@ -74,10 +90,19 @@
             android:ellipsize="end" />
 
         <TextView
+            android:id="@+id/textReminderIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp"
+            android:textColor="#FF6F00"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/textNoteDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:textSize="12sp"
             android:textColor="#9E9E9E" />
 
