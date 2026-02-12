@@ -77,7 +77,7 @@ class AiTextProcessor(
                     // Claude/Anthropic API format
                     JSONObject().apply {
                         put("model", model)
-                        put("max_tokens", 2000)
+                        put("max_tokens", 8192)
                         put("system", systemPrompt)
                         put("messages", JSONArray().apply {
                             put(JSONObject().apply {
@@ -100,7 +100,7 @@ class AiTextProcessor(
                                 put("content", text)
                             })
                         })
-                        put("max_tokens", 2000)
+                        put("max_tokens", 4096)
                         put("temperature", 0.3)
                     }
                 }
@@ -111,13 +111,13 @@ class AiTextProcessor(
                     setRequestProperty("Content-Type", "application/json")
                     if (isAnthropicApi()) {
                         setRequestProperty("x-api-key", apiKey)
-                        setRequestProperty("anthropic-version", "2024-10-22")
+                        setRequestProperty("anthropic-version", "2023-06-01")
                     } else {
                         setRequestProperty("Authorization", "Bearer $apiKey")
                     }
                     doOutput = true
                     connectTimeout = 30000
-                    readTimeout = 60000
+                    readTimeout = 120000
                 }
 
                 connection.outputStream.use { os ->
@@ -153,13 +153,18 @@ class AiTextProcessor(
                     val errorBody = BufferedReader(InputStreamReader(errorStream)).use {
                         it.readText()
                     }
+                    val errorDetail = try {
+                        val errJson = JSONObject(errorBody)
+                        errJson.optJSONObject("error")?.optString("message", "") ?: ""
+                    } catch (_: Exception) { "" }
                     val friendlyMsg = when (responseCode) {
+                        400 -> "Chybny pozadavek (400). ${if (errorDetail.isNotEmpty()) errorDetail else "Zkontrolujte model v Nastaveni AI."}"
                         401 -> "Neplatny API klic. Zkontrolujte klic v Nastaveni AI."
                         403 -> "Pristup odepren. Zkontrolujte API klic a opravneni."
                         404 -> "Spatna URL adresa API. Zkontrolujte URL v Nastaveni AI."
                         429 -> "Prilis mnoho pozadavku. Zkuste to znovu za chvili."
                         500, 502, 503 -> "Server AI je docasne nedostupny. Zkuste to pozdeji."
-                        else -> "HTTP $responseCode: $errorBody"
+                        else -> "HTTP $responseCode: ${if (errorDetail.isNotEmpty()) errorDetail else errorBody.take(200)}"
                     }
                     Result(success = false, text = "", error = friendlyMsg)
                 }

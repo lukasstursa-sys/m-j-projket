@@ -64,6 +64,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
     private var selectedColor = 0
     private var backgroundService: SpeechRecordingService? = null
     private var serviceBound = false
+    private var contentBeforeBackgroundRecording = ""
     private lateinit var attachmentAdapter: AttachmentAdapter
     private var cameraPhotoUri: Uri? = null
 
@@ -112,10 +113,11 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
             backgroundService?.serviceListener = object : SpeechRecordingService.ServiceCallback {
                 override fun onTranscriptionUpdate(fullText: String, partialText: String) {
                     runOnUiThread {
-                        val current = binding.editContent.text.toString()
-                        if (fullText.length > current.length) {
-                            binding.editContent.setText(fullText)
-                            binding.editContent.setSelection(fullText.length)
+                        if (fullText.isNotEmpty()) {
+                            val separator = if (contentBeforeBackgroundRecording.isNotEmpty()) " " else ""
+                            val combined = contentBeforeBackgroundRecording + separator + fullText
+                            binding.editContent.setText(combined)
+                            binding.editContent.setSelection(combined.length)
                         }
                         if (partialText.isNotEmpty()) {
                             binding.textDetailStatus.text = partialText
@@ -129,8 +131,10 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
                 }
                 override fun onRecordingStopped(fullText: String) {
                     runOnUiThread {
-                        binding.editContent.setText(fullText)
-                        binding.editContent.setSelection(fullText.length)
+                        val separator = if (contentBeforeBackgroundRecording.isNotEmpty() && fullText.isNotEmpty()) " " else ""
+                        val combined = contentBeforeBackgroundRecording + separator + fullText
+                        binding.editContent.setText(combined)
+                        binding.editContent.setSelection(combined.length)
                         binding.textDetailStatus.text = getString(R.string.tap_to_speak)
                     }
                 }
@@ -376,6 +380,8 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
             serviceBound = false
             Toast.makeText(this, "Nahravani na pozadi zastaveno", Toast.LENGTH_SHORT).show()
         } else {
+            // Save existing content so background recording appends to it
+            contentBeforeBackgroundRecording = binding.editContent.text.toString()
             val serviceIntent = Intent(this, SpeechRecordingService::class.java)
             ContextCompat.startForegroundService(this, serviceIntent)
             bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
