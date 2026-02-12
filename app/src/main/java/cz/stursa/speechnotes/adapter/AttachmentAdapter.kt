@@ -35,7 +35,7 @@ class AttachmentAdapter(
                 "image" -> Pair(android.R.drawable.ic_menu_gallery, "Obrazek")
                 "audio" -> Pair(android.R.drawable.ic_lock_silent_mode_off, "Zvuk")
                 "video" -> Pair(android.R.drawable.ic_media_play, "Video")
-                else -> Pair(android.R.drawable.ic_menu_attachment, "Soubor")
+                else -> Pair(android.R.drawable.ic_menu_save, "Soubor")
             }
             binding.iconAttachment.setImageResource(iconRes)
             binding.textAttachmentType.text = typeLabel
