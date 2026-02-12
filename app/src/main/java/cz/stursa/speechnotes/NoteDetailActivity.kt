@@ -686,7 +686,14 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
                 }
                 .show()
         } else {
-            Toast.makeText(this, "Chyba AI: ${result.error}", Toast.LENGTH_LONG).show()
+            MaterialAlertDialogBuilder(this@NoteDetailActivity)
+                .setTitle("Chyba AI")
+                .setMessage(result.error)
+                .setPositiveButton("OK", null)
+                .setNeutralButton("Nastaveni AI") { _, _ ->
+                    showAiSetupDialog()
+                }
+                .show()
         }
     }
 
