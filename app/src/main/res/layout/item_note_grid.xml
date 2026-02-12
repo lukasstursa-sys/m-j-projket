@@ -4,17 +4,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:strokeWidth="0dp">
+    android:layout_margin="5dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="1dp"
+    app:strokeWidth="0.5dp"
+    app:strokeColor="#E0E0E0">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="12dp"
+        android:minHeight="120dp">
 
+        <!-- Top row: pin + folder -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -30,67 +33,100 @@
                 android:layout_marginEnd="4dp"
                 android:visibility="gone" />
 
-            <TextView
-                android:id="@+id/textNoteTitle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="15sp"
-                android:textColor="@color/on_surface"
-                android:textStyle="bold"
-                android:maxLines="2"
-                android:ellipsize="end" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFolder"
+                android:layout_width="wrap_content"
+                android:layout_height="20dp"
+                android:textSize="10sp"
+                android:textColor="#E65100"
+                android:visibility="gone"
+                app:chipMinHeight="20dp"
+                app:chipMinTouchTargetSize="20dp"
+                app:chipStartPadding="4dp"
+                app:chipEndPadding="4dp"
+                app:chipCornerRadius="4dp"
+                app:chipBackgroundColor="#FFF3E0"
+                app:chipStrokeWidth="0dp"
+                app:chipIconSize="0dp" />
 
         </LinearLayout>
 
+        <!-- Title -->
+        <TextView
+            android:id="@+id/textNoteTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="14sp"
+            android:textColor="@color/on_surface"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <!-- Content preview -->
         <TextView
             android:id="@+id/textNoteContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textColor="@color/on_surface_secondary"
-            android:maxLines="4"
-            android:ellipsize="end" />
+            android:maxLines="3"
+            android:ellipsize="end"
+            android:lineSpacingMultiplier="1.15" />
 
-        <TextView
-            android:id="@+id/textReminderIndicator"
-            android:layout_width="wrap_content"
+        <!-- Spacer -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- Bottom row: reminder + date -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textSize="11sp"
-            android:textColor="#FF6F00"
-            android:visibility="gone" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
 
-        <TextView
-            android:id="@+id/textNoteDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textSize="11sp"
-            android:textColor="#9E9E9E" />
+            <TextView
+                android:id="@+id/textReminderIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="10sp"
+                android:textColor="#FF6F00"
+                android:layout_marginEnd="4dp"
+                android:visibility="gone" />
 
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/textNoteDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="10sp"
+                android:textColor="#BDBDBD" />
+
+        </LinearLayout>
+
+        <!-- Hidden - needed for ViewBinding -->
         <TextView
             android:id="@+id/textAttachmentIndicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone" />
-
-        <!-- Hidden chips (needed by ViewBinding) -->
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipFolder"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:visibility="gone" />
         <com.google.android.material.chip.Chip
             android:id="@+id/chipCategory"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:visibility="gone" />
         <com.google.android.material.chip.Chip
             android:id="@+id/chipLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             android:visibility="gone" />
 
     </LinearLayout>
