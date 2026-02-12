@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
+<androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -7,9 +7,7 @@
     android:layout_marginHorizontal="12dp"
     android:layout_marginVertical="2dp"
     app:cardCornerRadius="10dp"
-    app:cardElevation="0dp"
-    app:strokeWidth="0.5dp"
-    app:strokeColor="#EEEEEE">
+    app:cardElevation="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -59,7 +57,7 @@
         </LinearLayout>
 
         <!-- Folder tag (small) -->
-        <com.google.android.material.chip.Chip
+        <TextView
             android:id="@+id/chipFolder"
             android:layout_width="wrap_content"
             android:layout_height="20dp"
@@ -67,14 +65,11 @@
             android:textSize="10sp"
             android:textColor="#E65100"
             android:visibility="gone"
-            app:chipMinHeight="20dp"
-            app:chipMinTouchTargetSize="20dp"
-            app:chipStartPadding="4dp"
-            app:chipEndPadding="4dp"
-            app:chipCornerRadius="4dp"
-            app:chipBackgroundColor="#FFF3E0"
-            app:chipStrokeWidth="0dp"
-            app:chipIconSize="0dp" />
+            android:minHeight="20dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:gravity="center"
+            android:background="#FFF3E0" />
 
         <!-- Reminder -->
         <TextView
@@ -101,12 +96,12 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:visibility="gone" />
-        <com.google.android.material.chip.Chip
+        <TextView
             android:id="@+id/chipCategory"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:visibility="gone" />
-        <com.google.android.material.chip.Chip
+        <TextView
             android:id="@+id/chipLabel"
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -114,4 +109,4 @@
 
     </LinearLayout>
 
-</com.google.android.material.card.MaterialCardView>
+</androidx.cardview.widget.CardView>

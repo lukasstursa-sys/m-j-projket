@@ -21,8 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import com.google.android.material.chip.Chip
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.appcompat.app.AlertDialog
 import cz.stursa.speechnotes.adapter.NoteAdapter
 import cz.stursa.speechnotes.data.AppSettingsManager
 import cz.stursa.speechnotes.data.BackupManager
@@ -250,7 +249,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
         // Setup folder picker
         dialogBinding.editDialogFolder.setOnClickListener {
             val folders = folderManager.getFolders()
-            MaterialAlertDialogBuilder(this)
+            AlertDialog.Builder(this)
                 .setTitle(R.string.folder_hint)
                 .setItems(folders.toTypedArray()) { _, which ->
                     dialogBinding.editDialogFolder.setText(folders[which])
@@ -276,7 +275,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
             emojiContainer.addView(tv)
         }
 
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle(R.string.new_note)
             .setView(dialogBinding.root)
             .setPositiveButton(R.string.save_note) { _, _ ->
@@ -331,7 +330,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
             getString(R.string.sort_by_folder),
             getString(R.string.sort_by_category)
         )
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle(R.string.sort_notes)
             .setItems(options) { _, which ->
                 viewModel.setSortMode(which)
@@ -344,7 +343,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
     private fun showFilterDialog() {
         viewModel.allLabels.value?.let { labels ->
             val items = arrayOf(getString(R.string.all_notes)) + labels.toTypedArray()
-            MaterialAlertDialogBuilder(this)
+            AlertDialog.Builder(this)
                 .setTitle(R.string.filter_by_label)
                 .setItems(items) { _, which ->
                     if (which == 0) {
@@ -363,7 +362,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
     private fun showCategoryFilterDialog() {
         viewModel.allCategories.value?.let { categories ->
             val items = arrayOf(getString(R.string.all_categories)) + categories.toTypedArray()
-            MaterialAlertDialogBuilder(this)
+            AlertDialog.Builder(this)
                 .setTitle(R.string.filter_by_category)
                 .setItems(items) { _, which ->
                     if (which == 0) {
@@ -379,7 +378,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
     private fun showFolderFilterDialog() {
         val folders = folderManager.getFolders()
         val items = arrayOf(getString(R.string.all_folders)) + folders.toTypedArray()
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle(R.string.filter_by_folder)
             .setItems(items) { _, which ->
                 if (which == 0) {
@@ -404,28 +403,47 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
     private fun updateFilterChips(selectedLabel: String?) {
         binding.chipGroupLabels.removeAllViews()
 
-        val allChip = Chip(this).apply {
-            text = getString(R.string.all_notes)
-            isCheckable = true
-            isChecked = selectedLabel == null
-            setOnClickListener {
-                viewModel.clearAllFilters()
-                updateFilterChips(null)
-            }
+        val allChip = createFilterChip(getString(R.string.all_notes), selectedLabel == null) {
+            viewModel.clearAllFilters()
+            updateFilterChips(null)
         }
         binding.chipGroupLabels.addView(allChip)
 
         viewModel.allLabels.value?.forEach { label ->
-            val chip = Chip(this).apply {
-                text = label
-                isCheckable = true
-                isChecked = label == selectedLabel
-                setOnClickListener {
-                    viewModel.setLabelFilter(label)
-                    updateFilterChips(label)
-                }
+            val chip = createFilterChip(label, label == selectedLabel) {
+                viewModel.setLabelFilter(label)
+                updateFilterChips(label)
             }
             binding.chipGroupLabels.addView(chip)
+        }
+    }
+
+    private fun createFilterChip(label: String, isSelected: Boolean, onClick: () -> Unit): TextView {
+        return TextView(this).apply {
+            text = label
+            textSize = 14f
+            val hPad = (12 * resources.displayMetrics.density).toInt()
+            val vPad = (6 * resources.displayMetrics.density).toInt()
+            setPadding(hPad, vPad, hPad, vPad)
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            params.marginEnd = (6 * resources.displayMetrics.density).toInt()
+            layoutParams = params
+            val bg = GradientDrawable().apply {
+                cornerRadius = 16 * resources.displayMetrics.density
+                if (isSelected) {
+                    setColor(ContextCompat.getColor(this@MainActivity, R.color.primary))
+                    setStroke(0, 0)
+                } else {
+                    setColor(0xFFE0E0E0.toInt())
+                    setStroke(0, 0)
+                }
+            }
+            background = bg
+            setTextColor(if (isSelected) Color.WHITE else Color.DKGRAY)
+            setOnClickListener { onClick() }
         }
     }
 
@@ -442,11 +460,11 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
             "${note.emoji} ${note.title}".trim()
         }.toTypedArray()
 
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle(R.string.trash)
             .setItems(items) { _, which ->
                 val note = deletedNotes[which]
-                MaterialAlertDialogBuilder(this)
+                AlertDialog.Builder(this)
                     .setTitle(note.title)
                     .setMessage(note.content.take(200))
                     .setPositiveButton(R.string.restore_note) { _, _ ->
@@ -461,7 +479,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
                     .show()
             }
             .setNeutralButton(R.string.empty_trash) { _, _ ->
-                MaterialAlertDialogBuilder(this)
+                AlertDialog.Builder(this)
                     .setMessage("Opravdu chcete trvale smazat vsechny poznamky v kosi?")
                     .setPositiveButton(R.string.yes) { _, _ ->
                         viewModel.emptyTrash()
@@ -496,7 +514,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
             appendLine("S pripominkou: $withReminders")
         }
 
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle(R.string.statistics)
             .setMessage(msg)
             .setPositiveButton("OK", null)
@@ -509,10 +527,10 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
         val folders = folderManager.getFolders().toMutableList()
         val items = folders.map { "${folderManager.getFolderEmoji(it)} $it" }.toTypedArray()
 
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle(R.string.manage_folders)
             .setItems(items) { _, which ->
-                MaterialAlertDialogBuilder(this)
+                AlertDialog.Builder(this)
                     .setTitle(folders[which])
                     .setItems(arrayOf("Smazat slozku")) { _, _ ->
                         folderManager.removeFolder(folders[which])
@@ -522,7 +540,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
             }
             .setPositiveButton(R.string.add_folder) { _, _ ->
                 val editText = EditText(this).apply { hint = "Nazev slozky" }
-                MaterialAlertDialogBuilder(this)
+                AlertDialog.Builder(this)
                     .setTitle(R.string.add_folder)
                     .setView(editText)
                     .setPositiveButton(R.string.save_note) { _, _ ->
@@ -549,7 +567,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
             "Dlazdice (nastenka)"
         )
         val currentMode = settingsManager.listViewMode
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle(R.string.display_settings)
             .setSingleChoiceItems(options, currentMode) { dialog, which ->
                 applyViewMode(which)
@@ -572,7 +590,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
             getString(R.string.send_to_chat),
             getString(R.string.move_to_trash)
         )
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle(note.title)
             .setItems(options) { _, which ->
                 when (which) {
@@ -656,7 +674,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
     }
 
     private fun confirmMoveToTrash(note: Note) {
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setMessage(R.string.confirm_delete)
             .setPositiveButton(R.string.yes) { _, _ ->
                 viewModel.softDeleteNote(note)
@@ -712,10 +730,10 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
             return
         }
         val items = backups.map { it.name }.toTypedArray()
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle(R.string.backup_import)
             .setItems(items) { _, which ->
-                MaterialAlertDialogBuilder(this)
+                AlertDialog.Builder(this)
                     .setMessage("Obnovit databazi ze zalohy ${items[which]}?\nVsechna aktualni data budou prepsana.")
                     .setPositiveButton(R.string.yes) { _, _ ->
                         val result = backupManager.importDatabase(backups[which].absolutePath)
@@ -744,7 +762,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
             else -> 0
         }
 
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle(R.string.dark_mode)
             .setSingleChoiceItems(options, checkedItem) { dialog, which ->
                 val mode = when (which) {
@@ -779,7 +797,7 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
             appendLine("   ${whisperManager.getModelDir().absolutePath}")
         }
 
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle(R.string.whisper_settings)
             .setMessage(message)
             .setPositiveButton(if (whisperManager.isEnabled) "Vypnout" else "Zapnout") { _, _ ->

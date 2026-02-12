@@ -25,7 +25,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.appcompat.app.AlertDialog
 import cz.stursa.speechnotes.ai.AiSettingsManager
 import cz.stursa.speechnotes.ai.AiTextProcessor
 import cz.stursa.speechnotes.data.FolderManager
@@ -214,7 +214,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
     private fun setupFolderPicker() {
         binding.editFolder.setOnClickListener {
             val folders = folderManager.getFolders()
-            MaterialAlertDialogBuilder(this)
+            AlertDialog.Builder(this)
                 .setTitle(R.string.folder_hint)
                 .setItems(folders.toTypedArray()) { _, which ->
                     binding.editFolder.setText(folders[which])
@@ -226,7 +226,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
     private fun setupEmojiPicker() {
         binding.btnEmoji.setOnClickListener {
             val items = MainActivity.EMOJI_LIST.toTypedArray()
-            MaterialAlertDialogBuilder(this)
+            AlertDialog.Builder(this)
                 .setTitle(R.string.choose_emoji)
                 .setItems(items) { _, which ->
                     selectedEmoji = items[which]
@@ -527,7 +527,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
             "slovenstina", "rustina"
         )
 
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle(R.string.translate)
             .setItems(languages) { _, which ->
                 if (!aiSettings.isConfigured()) {
@@ -668,7 +668,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
 
     private fun showAiResult(result: AiTextProcessor.Result) {
         if (result.success) {
-            MaterialAlertDialogBuilder(this@NoteDetailActivity)
+            AlertDialog.Builder(this@NoteDetailActivity)
                 .setTitle("AI vysledek")
                 .setMessage(result.text)
                 .setPositiveButton("Nahradit text") { _, _ ->
@@ -686,7 +686,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
                 }
                 .show()
         } else {
-            MaterialAlertDialogBuilder(this@NoteDetailActivity)
+            AlertDialog.Builder(this@NoteDetailActivity)
                 .setTitle("Chyba AI")
                 .setMessage(result.error)
                 .setPositiveButton("OK", null)
@@ -931,7 +931,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
 
     private fun confirmDelete() {
         if (currentNote == null) { finish(); return }
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setMessage(R.string.confirm_delete)
             .setPositiveButton(R.string.move_to_trash) { _, _ ->
                 viewModel.softDeleteNote(currentNote!!)
@@ -972,7 +972,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
     }
 
     private fun offerAiStructuring() {
-        MaterialAlertDialogBuilder(this)
+        AlertDialog.Builder(this)
             .setTitle("AI asistent")
             .setMessage("Text je delsi. Chcete ho nechat zpracovat AI?")
             .setPositiveButton(getString(R.string.ai_structure)) { _, _ ->
