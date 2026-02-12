@@ -52,7 +52,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/note_title_hint"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTitle"
@@ -74,7 +74,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:hint="@string/label_hint"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editLabel"
@@ -91,7 +91,7 @@
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:hint="@string/category_hint"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editCategory"
@@ -116,7 +116,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:hint="@string/folder_hint"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editFolder"
@@ -136,7 +136,7 @@
                     android:layout_marginStart="8dp"
                     android:text="@string/emoji_icon"
                     android:textSize="24sp"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                    style="@style/Widget.Material3.Button.OutlinedButton" />
 
             </LinearLayout>
 
@@ -168,7 +168,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:hint="@string/note_content_hint"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editContent"
@@ -221,7 +221,7 @@
                         android:layout_marginStart="12dp"
                         android:text="@string/continue_recording"
                         android:visibility="gone"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
 
                 </LinearLayout>
 
