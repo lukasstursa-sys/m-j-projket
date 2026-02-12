@@ -68,14 +68,48 @@ class AiTextProcessor(
         return apiUrl.contains("anthropic.com")
     }
 
+    private fun isGeminiApi(): Boolean {
+        return apiUrl.contains("generativelanguage.googleapis.com")
+    }
+
     suspend fun process(text: String, action: Action, customPrompt: String = ""): Result {
         return withContext(Dispatchers.IO) {
             try {
                 val systemPrompt = if (action == Action.CUSTOM) customPrompt else action.systemPrompt
 
-                val requestBody = if (isAnthropicApi()) {
+                val requestBody: JSONObject
+                val requestUrl: String
+
+                if (isGeminiApi()) {
+                    // Google Gemini API format
+                    requestUrl = "$apiUrl/models/$model:generateContent?key=$apiKey"
+                    requestBody = JSONObject().apply {
+                        put("system_instruction", JSONObject().apply {
+                            put("parts", JSONArray().apply {
+                                put(JSONObject().apply {
+                                    put("text", systemPrompt)
+                                })
+                            })
+                        })
+                        put("contents", JSONArray().apply {
+                            put(JSONObject().apply {
+                                put("role", "user")
+                                put("parts", JSONArray().apply {
+                                    put(JSONObject().apply {
+                                        put("text", text)
+                                    })
+                                })
+                            })
+                        })
+                        put("generationConfig", JSONObject().apply {
+                            put("temperature", 0.3)
+                            put("maxOutputTokens", 8192)
+                        })
+                    }
+                } else if (isAnthropicApi()) {
                     // Claude/Anthropic API format
-                    JSONObject().apply {
+                    requestUrl = apiUrl
+                    requestBody = JSONObject().apply {
                         put("model", model)
                         put("max_tokens", 8192)
                         put("system", systemPrompt)
@@ -88,7 +122,8 @@ class AiTextProcessor(
                     }
                 } else {
                     // OpenAI-compatible API format
-                    JSONObject().apply {
+                    requestUrl = apiUrl
+                    requestBody = JSONObject().apply {
                         put("model", model)
                         put("messages", JSONArray().apply {
                             put(JSONObject().apply {
@@ -105,16 +140,18 @@ class AiTextProcessor(
                     }
                 }
 
-                val connection = URL(apiUrl).openConnection() as HttpURLConnection
+                val connection = URL(requestUrl).openConnection() as HttpURLConnection
                 connection.apply {
                     requestMethod = "POST"
                     setRequestProperty("Content-Type", "application/json")
                     if (isAnthropicApi()) {
                         setRequestProperty("x-api-key", apiKey)
                         setRequestProperty("anthropic-version", "2023-06-01")
-                    } else {
+                    } else if (!isGeminiApi()) {
+                        // OpenAI and custom APIs use Bearer token
                         setRequestProperty("Authorization", "Bearer $apiKey")
                     }
+                    // Gemini uses API key in URL query parameter
                     doOutput = true
                     connectTimeout = 30000
                     readTimeout = 120000
@@ -130,7 +167,17 @@ class AiTextProcessor(
                         it.readText()
                     }
                     val jsonResponse = JSONObject(response)
-                    val content = if (isAnthropicApi()) {
+                    val content = if (isGeminiApi()) {
+                        // Gemini response: candidates[0].content.parts[0].text
+                        jsonResponse
+                            .getJSONArray("candidates")
+                            .getJSONObject(0)
+                            .getJSONObject("content")
+                            .getJSONArray("parts")
+                            .getJSONObject(0)
+                            .getString("text")
+                            .trim()
+                    } else if (isAnthropicApi()) {
                         // Claude response: content[0].text
                         jsonResponse
                             .getJSONArray("content")

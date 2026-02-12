@@ -706,6 +706,8 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
 
         // Service presets: name, url, model
         val services = arrayOf(
+            Triple("Google Gemini 2.5 Flash (zdarma)", "https://generativelanguage.googleapis.com/v1beta", "gemini-2.5-flash"),
+            Triple("Google Gemini 2.5 Pro", "https://generativelanguage.googleapis.com/v1beta", "gemini-2.5-pro"),
             Triple("Claude Opus 4.6 (nejnovejsi)", "https://api.anthropic.com/v1/messages", "claude-opus-4-6"),
             Triple("Claude Sonnet 4.5 (rychly)", "https://api.anthropic.com/v1/messages", "claude-sonnet-4-5-20250929"),
             Triple("OpenAI GPT-4o", "https://api.openai.com/v1/chat/completions", "gpt-4o"),
@@ -721,11 +723,13 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         val currentUrl = aiSettings.apiUrl
         val currentModel = aiSettings.model
         val selectedIndex = when {
-            currentUrl.contains("anthropic.com") && currentModel.contains("opus") -> 0
-            currentUrl.contains("anthropic.com") -> 1
-            currentUrl.contains("openai.com") && currentModel == "gpt-4o" -> 2
-            currentUrl.contains("openai.com") -> 3
-            else -> 4
+            currentUrl.contains("googleapis.com") && currentModel.contains("flash") -> 0
+            currentUrl.contains("googleapis.com") -> 1
+            currentUrl.contains("anthropic.com") && currentModel.contains("opus") -> 2
+            currentUrl.contains("anthropic.com") -> 3
+            currentUrl.contains("openai.com") && currentModel == "gpt-4o" -> 4
+            currentUrl.contains("openai.com") -> 5
+            else -> 6
         }
         spinnerService.setSelection(selectedIndex)
 
