@@ -591,13 +591,45 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
 
     private fun showAiSetupDialog() {
         val view = layoutInflater.inflate(R.layout.dialog_ai_settings, null)
+        val spinnerService = view.findViewById<android.widget.Spinner>(R.id.spinnerService)
         val editApiKey = view.findViewById<EditText>(R.id.editApiKey)
         val editApiUrl = view.findViewById<EditText>(R.id.editApiUrl)
         val editModel = view.findViewById<EditText>(R.id.editModel)
 
+        // Service presets: name, url, model
+        val services = arrayOf(
+            Triple("Anthropic (Claude)", "https://api.anthropic.com/v1/messages", "claude-sonnet-4-5-20250929"),
+            Triple("OpenAI (GPT)", "https://api.openai.com/v1/chat/completions", "gpt-4o-mini"),
+            Triple("Vlastni / Ollama", "", "")
+        )
+        val serviceNames = services.map { it.first }.toTypedArray()
+        val adapter = android.widget.ArrayAdapter(this, android.R.layout.simple_spinner_item, serviceNames)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerService.adapter = adapter
+
+        // Detect current service from saved URL
+        val currentUrl = aiSettings.apiUrl
+        val selectedIndex = when {
+            currentUrl.contains("anthropic.com") -> 0
+            currentUrl.contains("openai.com") -> 1
+            else -> 2
+        }
+        spinnerService.setSelection(selectedIndex)
+
         editApiKey.setText(aiSettings.apiKey)
         editApiUrl.setText(aiSettings.apiUrl)
         editModel.setText(aiSettings.model)
+
+        spinnerService.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, v: View?, position: Int, id: Long) {
+                val (_, url, model) = services[position]
+                if (url.isNotEmpty()) {
+                    editApiUrl.setText(url)
+                    editModel.setText(model)
+                }
+            }
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        }
 
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Nastaveni AI")

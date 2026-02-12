@@ -111,7 +111,7 @@ class AiTextProcessor(
                     setRequestProperty("Content-Type", "application/json")
                     if (isAnthropicApi()) {
                         setRequestProperty("x-api-key", apiKey)
-                        setRequestProperty("anthropic-version", "2023-06-01")
+                        setRequestProperty("anthropic-version", "2024-10-22")
                     } else {
                         setRequestProperty("Authorization", "Bearer $apiKey")
                     }
@@ -150,11 +150,23 @@ class AiTextProcessor(
                     Result(success = true, text = content)
                 } else {
                     val errorStream = connection.errorStream ?: connection.inputStream
-                    val error = BufferedReader(InputStreamReader(errorStream)).use {
+                    val errorBody = BufferedReader(InputStreamReader(errorStream)).use {
                         it.readText()
                     }
-                    Result(success = false, text = "", error = "HTTP $responseCode: $error")
+                    val friendlyMsg = when (responseCode) {
+                        401 -> "Neplatny API klic. Zkontrolujte klic v Nastaveni AI."
+                        403 -> "Pristup odepren. Zkontrolujte API klic a opravneni."
+                        404 -> "Spatna URL adresa API. Zkontrolujte URL v Nastaveni AI."
+                        429 -> "Prilis mnoho pozadavku. Zkuste to znovu za chvili."
+                        500, 502, 503 -> "Server AI je docasne nedostupny. Zkuste to pozdeji."
+                        else -> "HTTP $responseCode: $errorBody"
+                    }
+                    Result(success = false, text = "", error = friendlyMsg)
                 }
+            } catch (e: java.net.UnknownHostException) {
+                Result(success = false, text = "", error = "Nelze se pripojit k serveru. Zkontrolujte pripojeni k internetu.")
+            } catch (e: java.net.SocketTimeoutException) {
+                Result(success = false, text = "", error = "Casovy limit vyprsел. Server neodpovida.")
             } catch (e: Exception) {
                 Result(success = false, text = "", error = e.message ?: "Neznama chyba")
             }

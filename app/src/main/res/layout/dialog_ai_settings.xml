@@ -9,10 +9,17 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Zadejte klíč a nastavení pro AI API.\nPodporuje: OpenAI, Claude/Anthropic (nativně), Ollama, LM Studio aj.\n\nPro Claude: URL = https://api.anthropic.com/v1/messages\nModel: claude-sonnet-4-5-20250929"
-        android:textSize="13sp"
+        android:text="Vyberte službu a zadejte API klíč:"
+        android:textSize="14sp"
         android:textColor="#757575"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="12dp" />
+
+    <Spinner
+        android:id="@+id/spinnerService"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:padding="12dp" />
 
     <EditText
         android:id="@+id/editApiKey"
@@ -27,7 +34,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:hint="URL API (výchozí: OpenAI)"
+        android:hint="URL API"
         android:inputType="textUri"
         android:padding="12dp" />
 
@@ -36,7 +43,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:hint="Model (např. gpt-3.5-turbo)"
+        android:hint="Model"
         android:inputType="text"
         android:padding="12dp" />
 
