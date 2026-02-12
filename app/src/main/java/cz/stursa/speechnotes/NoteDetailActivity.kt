@@ -599,7 +599,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         editApiUrl.setText(aiSettings.apiUrl)
         editModel.setText(aiSettings.model)
 
-        MaterialAlertDialogBuilder(this)
+        androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Nastaveni AI")
             .setView(view)
             .setPositiveButton("Ulozit") { _, _ ->
