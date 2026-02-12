@@ -148,6 +148,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
                 R.id.action_ai_smart_rewrite -> { processWithAi(AiTextProcessor.Action.SMART_REWRITE); true }
                 R.id.action_ai_translate -> { showTranslateDialog(); true }
                 R.id.action_export_txt -> { exportAsTxt(); true }
+                R.id.action_ai_settings -> { showAiSetupDialog(); true }
                 R.id.action_delete -> { confirmDelete(); true }
                 else -> false
             }

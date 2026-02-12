@@ -48,21 +48,14 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <com.google.android.material.textfield.TextInputLayout
+            <EditText
+                android:id="@+id/editTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/note_title_hint"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="18sp"
-                    android:inputType="textCapSentences" />
-
-            </com.google.android.material.textfield.TextInputLayout>
+                android:textSize="18sp"
+                android:inputType="textCapSentences"
+                android:padding="12dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -70,40 +63,26 @@
                 android:orientation="horizontal"
                 android:layout_marginTop="12dp">
 
-                <com.google.android.material.textfield.TextInputLayout
+                <EditText
+                    android:id="@+id/editLabel"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:hint="@string/label_hint"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                    android:textSize="14sp"
+                    android:inputType="text"
+                    android:padding="12dp" />
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/editLabel"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="14sp"
-                        android:inputType="text" />
-
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
+                <EditText
+                    android:id="@+id/editCategory"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:hint="@string/category_hint"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/editCategory"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="14sp"
-                        android:inputType="text" />
-
-                </com.google.android.material.textfield.TextInputLayout>
+                    android:textSize="14sp"
+                    android:inputType="text"
+                    android:padding="12dp" />
 
             </LinearLayout>
 
@@ -114,24 +93,17 @@
                 android:orientation="horizontal"
                 android:layout_marginTop="12dp">
 
-                <com.google.android.material.textfield.TextInputLayout
+                <EditText
+                    android:id="@+id/editFolder"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:hint="@string/folder_hint"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/editFolder"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="14sp"
-                        android:inputType="text"
-                        android:focusable="false"
-                        android:clickable="true" />
-
-                </com.google.android.material.textfield.TextInputLayout>
+                    android:textSize="14sp"
+                    android:inputType="text"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:padding="12dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnEmoji"
@@ -167,24 +139,17 @@
 
             </HorizontalScrollView>
 
-            <com.google.android.material.textfield.TextInputLayout
+            <EditText
+                android:id="@+id/editContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:hint="@string/note_content_hint"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editContent"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minLines="8"
-                    android:gravity="top"
-                    android:textSize="16sp"
-                    android:inputType="textMultiLine|textCapSentences" />
-
-            </com.google.android.material.textfield.TextInputLayout>
+                android:minLines="8"
+                android:gravity="top"
+                android:textSize="16sp"
+                android:inputType="textMultiLine|textCapSentences"
+                android:padding="12dp" />
 
             <!-- Speech recording -->
             <LinearLayout

@@ -14,51 +14,30 @@
         android:textColor="#757575"
         android:layout_marginBottom="16dp" />
 
-    <com.google.android.material.textfield.TextInputLayout
+    <EditText
+        android:id="@+id/editApiKey"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="API klíč"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+        android:inputType="textPassword"
+        android:padding="12dp" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editApiKey"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPassword" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
+    <EditText
+        android:id="@+id/editApiUrl"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:hint="URL API (výchozí: OpenAI)"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+        android:inputType="textUri"
+        android:padding="12dp" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editApiUrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textUri" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
+    <EditText
+        android:id="@+id/editModel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:hint="Model (např. gpt-3.5-turbo)"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editModel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text" />
-
-    </com.google.android.material.textfield.TextInputLayout>
+        android:inputType="text"
+        android:padding="12dp" />
 
 </LinearLayout>
