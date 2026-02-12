@@ -706,8 +706,10 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
 
         // Service presets: name, url, model
         val services = arrayOf(
-            Triple("Anthropic (Claude)", "https://api.anthropic.com/v1/messages", "claude-sonnet-4-5-20250929"),
-            Triple("OpenAI (GPT)", "https://api.openai.com/v1/chat/completions", "gpt-4o-mini"),
+            Triple("Claude Opus 4.6 (nejnovejsi)", "https://api.anthropic.com/v1/messages", "claude-opus-4-6"),
+            Triple("Claude Sonnet 4.5 (rychly)", "https://api.anthropic.com/v1/messages", "claude-sonnet-4-5-20250929"),
+            Triple("OpenAI GPT-4o", "https://api.openai.com/v1/chat/completions", "gpt-4o"),
+            Triple("OpenAI GPT-4o-mini", "https://api.openai.com/v1/chat/completions", "gpt-4o-mini"),
             Triple("Vlastni / Ollama", "", "")
         )
         val serviceNames = services.map { it.first }.toTypedArray()
@@ -715,12 +717,15 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerService.adapter = adapter
 
-        // Detect current service from saved URL
+        // Detect current service from saved URL and model
         val currentUrl = aiSettings.apiUrl
+        val currentModel = aiSettings.model
         val selectedIndex = when {
-            currentUrl.contains("anthropic.com") -> 0
-            currentUrl.contains("openai.com") -> 1
-            else -> 2
+            currentUrl.contains("anthropic.com") && currentModel.contains("opus") -> 0
+            currentUrl.contains("anthropic.com") -> 1
+            currentUrl.contains("openai.com") && currentModel == "gpt-4o" -> 2
+            currentUrl.contains("openai.com") -> 3
+            else -> 4
         }
         spinnerService.setSelection(selectedIndex)
 
