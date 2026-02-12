@@ -18,6 +18,48 @@
         app:titleTextColor="@color/on_primary"
         app:menu="@menu/menu_detail" />
 
+    <!-- Reminder banner -->
+    <LinearLayout
+        android:id="@+id/reminderBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#FFF3E0"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/textReminderInfo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="13sp"
+            android:textColor="#E65100"
+            android:drawablePadding="8dp" />
+
+        <ImageButton
+            android:id="@+id/btnEditReminder"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_edit"
+            android:contentDescription="Upravit"
+            android:scaleType="center" />
+
+        <ImageButton
+            android:id="@+id/btnCancelReminder"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:contentDescription="Zrusit"
+            android:scaleType="center" />
+
+    </LinearLayout>
+
     <ScrollView
         android:id="@+id/markdownPreviewContainer"
         android:layout_width="match_parent"

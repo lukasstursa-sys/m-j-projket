@@ -127,6 +127,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         setupEmojiPicker()
         setupColorPicker()
         setupResumeButton()
+        setupReminderBanner()
         loadNote()
     }
 
@@ -266,6 +267,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
                         binding.btnEmoji.text = note.emoji
                     }
                     binding.toolbar.title = getString(R.string.edit_note)
+                    updateReminderBanner()
                 }
             }
         } else {
@@ -348,6 +350,40 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
 
     // --- Reminder ---
 
+    private fun setupReminderBanner() {
+        binding.btnEditReminder.setOnClickListener { showReminderPicker() }
+        binding.btnCancelReminder.setOnClickListener { cancelReminder() }
+    }
+
+    private fun updateReminderBanner() {
+        val note = currentNote ?: return
+        if (note.reminderTime > 0) {
+            binding.reminderBanner.visibility = View.VISIBLE
+            val dateStr = dateTimeFormat.format(Date(note.reminderTime))
+            if (note.reminderTime > System.currentTimeMillis()) {
+                binding.textReminderInfo.text = "\u23F0 Pripominka: $dateStr"
+                binding.reminderBanner.setBackgroundColor(0xFFFFF3E0.toInt())
+                binding.textReminderInfo.setTextColor(0xFFE65100.toInt())
+            } else {
+                binding.textReminderInfo.text = "\u2705 Pripominka probehla: $dateStr"
+                binding.reminderBanner.setBackgroundColor(0xFFE8F5E9.toInt())
+                binding.textReminderInfo.setTextColor(0xFF2E7D32.toInt())
+            }
+        } else {
+            binding.reminderBanner.visibility = View.GONE
+        }
+    }
+
+    private fun cancelReminder() {
+        val note = currentNote ?: return
+        viewModel.setReminder(note.id, 0)
+        val reminderManager = ReminderManager(this)
+        reminderManager.cancelReminder(note.id)
+        currentNote = note.copy(reminderTime = 0)
+        updateReminderBanner()
+        Toast.makeText(this, "Pripominka zrusena", Toast.LENGTH_SHORT).show()
+    }
+
     private fun showReminderPicker() {
         val cal = Calendar.getInstance()
         DatePickerDialog(this, { _, year, month, day ->
@@ -366,6 +402,8 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
                         binding.editContent.text.toString(),
                         reminderTime
                     )
+                    currentNote = currentNote!!.copy(reminderTime = reminderTime)
+                    updateReminderBanner()
                 }
 
                 Toast.makeText(this, R.string.reminder_set, Toast.LENGTH_SHORT).show()
