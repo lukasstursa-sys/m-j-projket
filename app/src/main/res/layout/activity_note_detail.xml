@@ -52,6 +52,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/note_title_hint"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -74,6 +75,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:hint="@string/label_hint"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -91,6 +93,7 @@
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:hint="@string/category_hint"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -116,6 +119,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:hint="@string/folder_hint"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -168,6 +172,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:hint="@string/note_content_hint"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText

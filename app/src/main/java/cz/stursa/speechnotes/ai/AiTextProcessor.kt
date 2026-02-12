@@ -64,32 +64,57 @@ class AiTextProcessor(
         val error: String? = null
     )
 
+    private fun isAnthropicApi(): Boolean {
+        return apiUrl.contains("anthropic.com")
+    }
+
     suspend fun process(text: String, action: Action, customPrompt: String = ""): Result {
         return withContext(Dispatchers.IO) {
             try {
                 val systemPrompt = if (action == Action.CUSTOM) customPrompt else action.systemPrompt
 
-                val requestBody = JSONObject().apply {
-                    put("model", model)
-                    put("messages", JSONArray().apply {
-                        put(JSONObject().apply {
-                            put("role", "system")
-                            put("content", systemPrompt)
+                val requestBody = if (isAnthropicApi()) {
+                    // Claude/Anthropic API format
+                    JSONObject().apply {
+                        put("model", model)
+                        put("max_tokens", 2000)
+                        put("system", systemPrompt)
+                        put("messages", JSONArray().apply {
+                            put(JSONObject().apply {
+                                put("role", "user")
+                                put("content", text)
+                            })
                         })
-                        put(JSONObject().apply {
-                            put("role", "user")
-                            put("content", text)
+                    }
+                } else {
+                    // OpenAI-compatible API format
+                    JSONObject().apply {
+                        put("model", model)
+                        put("messages", JSONArray().apply {
+                            put(JSONObject().apply {
+                                put("role", "system")
+                                put("content", systemPrompt)
+                            })
+                            put(JSONObject().apply {
+                                put("role", "user")
+                                put("content", text)
+                            })
                         })
-                    })
-                    put("max_tokens", 2000)
-                    put("temperature", 0.3)
+                        put("max_tokens", 2000)
+                        put("temperature", 0.3)
+                    }
                 }
 
                 val connection = URL(apiUrl).openConnection() as HttpURLConnection
                 connection.apply {
                     requestMethod = "POST"
                     setRequestProperty("Content-Type", "application/json")
-                    setRequestProperty("Authorization", "Bearer $apiKey")
+                    if (isAnthropicApi()) {
+                        setRequestProperty("x-api-key", apiKey)
+                        setRequestProperty("anthropic-version", "2023-06-01")
+                    } else {
+                        setRequestProperty("Authorization", "Bearer $apiKey")
+                    }
                     doOutput = true
                     connectTimeout = 30000
                     readTimeout = 60000
@@ -105,12 +130,22 @@ class AiTextProcessor(
                         it.readText()
                     }
                     val jsonResponse = JSONObject(response)
-                    val content = jsonResponse
-                        .getJSONArray("choices")
-                        .getJSONObject(0)
-                        .getJSONObject("message")
-                        .getString("content")
-                        .trim()
+                    val content = if (isAnthropicApi()) {
+                        // Claude response: content[0].text
+                        jsonResponse
+                            .getJSONArray("content")
+                            .getJSONObject(0)
+                            .getString("text")
+                            .trim()
+                    } else {
+                        // OpenAI response: choices[0].message.content
+                        jsonResponse
+                            .getJSONArray("choices")
+                            .getJSONObject(0)
+                            .getJSONObject("message")
+                            .getString("content")
+                            .trim()
+                    }
 
                     Result(success = true, text = content)
                 } else {
