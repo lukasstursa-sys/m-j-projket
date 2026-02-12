@@ -193,6 +193,48 @@
                 android:inputType="textMultiLine|textCapSentences"
                 android:padding="12dp" />
 
+            <!-- Attachments section -->
+            <LinearLayout
+                android:id="@+id/attachmentsSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/textAttachmentsLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Prilohy"
+                        android:textSize="14sp"
+                        android:textColor="@color/on_surface_secondary" />
+
+                    <ImageButton
+                        android:id="@+id/btnAddAttachment"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@android:drawable/ic_input_add"
+                        android:contentDescription="Pridat prilohu"
+                        android:scaleType="center" />
+
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerAttachments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" />
+
+            </LinearLayout>
+
             <!-- Speech recording -->
             <LinearLayout
                 android:layout_width="match_parent"

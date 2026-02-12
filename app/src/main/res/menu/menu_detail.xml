@@ -2,86 +2,86 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
-        android:id="@+id/action_share"
-        android:title="@string/share_note"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/action_timestamp"
-        android:title="@string/insert_timestamp"
-        app:showAsAction="ifRoom" />
-
+    <!-- Pripominka - primo viditelna -->
     <item
         android:id="@+id/action_set_reminder"
         android:title="@string/set_reminder"
-        app:showAsAction="never" />
+        android:icon="@android:drawable/ic_lock_idle_alarm"
+        app:showAsAction="ifRoom" />
 
+    <!-- AI nastroje - podmenu -->
     <item
-        android:id="@+id/action_send_calendar"
-        android:title="@string/send_to_calendar"
-        app:showAsAction="never" />
+        android:id="@+id/menu_ai"
+        android:title="AI nastroje"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/action_ai_summarize"
+                android:title="Shrnuti" />
+            <item
+                android:id="@+id/action_ai_bullet_points"
+                android:title="Odrazky" />
+            <item
+                android:id="@+id/action_ai_correct"
+                android:title="Opravit text" />
+            <item
+                android:id="@+id/action_ai_structure"
+                android:title="@string/ai_structure" />
+            <item
+                android:id="@+id/action_ai_smart_rewrite"
+                android:title="@string/ai_smart_rewrite" />
+            <item
+                android:id="@+id/action_ai_translate"
+                android:title="Prelozit" />
+            <item
+                android:id="@+id/action_ai_settings"
+                android:title="Nastaveni AI" />
+        </menu>
+    </item>
 
+    <!-- Sdileni a export - podmenu -->
     <item
-        android:id="@+id/action_send_chat"
-        android:title="@string/send_to_chat"
-        app:showAsAction="never" />
+        android:id="@+id/menu_share"
+        android:title="Sdileni a export"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/action_share"
+                android:title="@string/share_note" />
+            <item
+                android:id="@+id/action_copy"
+                android:title="Kopirovat text" />
+            <item
+                android:id="@+id/action_export_txt"
+                android:title="Export jako .txt" />
+            <item
+                android:id="@+id/action_send_calendar"
+                android:title="@string/send_to_calendar" />
+            <item
+                android:id="@+id/action_send_chat"
+                android:title="@string/send_to_chat" />
+        </menu>
+    </item>
 
+    <!-- Nastroje - podmenu -->
     <item
-        android:id="@+id/action_markdown_preview"
-        android:title="@string/markdown_preview"
-        app:showAsAction="never" />
+        android:id="@+id/menu_tools"
+        android:title="Nastroje"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/action_timestamp"
+                android:title="@string/insert_timestamp" />
+            <item
+                android:id="@+id/action_markdown_preview"
+                android:title="@string/markdown_preview" />
+            <item
+                android:id="@+id/action_background_record"
+                android:title="@string/background_recording" />
+        </menu>
+    </item>
 
-    <item
-        android:id="@+id/action_copy"
-        android:title="Kopirovat text"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_background_record"
-        android:title="@string/background_recording"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_ai_summarize"
-        android:title="AI: Shrnuti"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_ai_bullet_points"
-        android:title="AI: Odrazky"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_ai_correct"
-        android:title="AI: Opravit text"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_ai_structure"
-        android:title="@string/ai_structure"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_ai_smart_rewrite"
-        android:title="@string/ai_smart_rewrite"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_ai_translate"
-        android:title="AI: Prelozit"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_export_txt"
-        android:title="Export jako .txt"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_ai_settings"
-        android:title="AI nastaveni"
-        app:showAsAction="never" />
-
+    <!-- Smazat - samostatne -->
     <item
         android:id="@+id/action_delete"
         android:title="@string/delete_note"

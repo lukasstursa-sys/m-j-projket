@@ -8,7 +8,7 @@ import cz.stursa.speechnotes.data.NoteRepository
 class SpeechNotesApp : Application() {
 
     val database by lazy { AppDatabase.getInstance(this) }
-    val repository by lazy { NoteRepository(database.noteDao()) }
+    val repository by lazy { NoteRepository(database.noteDao(), database.attachmentDao()) }
 
     override fun onCreate() {
         super.onCreate()

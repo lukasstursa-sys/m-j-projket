@@ -18,7 +18,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import cz.stursa.speechnotes.adapter.NoteAdapter
@@ -165,10 +167,32 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
             onNoteClick = { note -> openNoteDetail(note) },
             onNoteLongClick = { note -> showNoteContextMenu(note) }
         )
-        binding.recyclerNotes.apply {
-            layoutManager = LinearLayoutManager(this@MainActivity)
-            adapter = noteAdapter
+        binding.recyclerNotes.adapter = noteAdapter
+        applyViewMode(settingsManager.listViewMode)
+    }
+
+    private fun applyViewMode(mode: Int) {
+        settingsManager.listViewMode = mode
+        when (mode) {
+            AppSettingsManager.VIEW_MODE_COMPACT -> {
+                noteAdapter.layoutResId = R.layout.item_note_compact
+                binding.recyclerNotes.layoutManager = LinearLayoutManager(this)
+            }
+            AppSettingsManager.VIEW_MODE_GRID -> {
+                noteAdapter.layoutResId = R.layout.item_note_grid
+                binding.recyclerNotes.layoutManager = GridLayoutManager(this, 2)
+            }
+            AppSettingsManager.VIEW_MODE_STAGGERED -> {
+                noteAdapter.layoutResId = R.layout.item_note_grid
+                binding.recyclerNotes.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+            }
+            else -> {
+                noteAdapter.layoutResId = R.layout.item_note
+                binding.recyclerNotes.layoutManager = LinearLayoutManager(this)
+            }
         }
+        // Force re-create view holders with new layout
+        noteAdapter.notifyDataSetChanged()
     }
 
     private fun setupMicButton() {
@@ -519,14 +543,17 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
 
     private fun showDisplaySettingsDialog() {
         val options = arrayOf(
-            getString(R.string.view_list),
-            getString(R.string.view_compact)
+            "Seznam (pod sebou)",
+            "Kompaktni (radky)",
+            "Mrizka (2 sloupce)",
+            "Dlazdice (nastenka)"
         )
+        val currentMode = settingsManager.listViewMode
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.display_settings)
-            .setItems(options) { _, which ->
-                settingsManager.listViewMode = which
-                Toast.makeText(this, "Zobrazeni zmeneno", Toast.LENGTH_SHORT).show()
+            .setSingleChoiceItems(options, currentMode) { dialog, which ->
+                applyViewMode(which)
+                dialog.dismiss()
             }
             .show()
     }

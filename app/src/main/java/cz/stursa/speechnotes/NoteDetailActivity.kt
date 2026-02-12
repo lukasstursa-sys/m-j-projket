@@ -3,6 +3,7 @@ package cz.stursa.speechnotes
 import android.Manifest
 import android.app.DatePickerDialog
 import android.content.ClipData
+import android.net.Uri
 import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
@@ -30,6 +31,8 @@ import cz.stursa.speechnotes.ai.AiTextProcessor
 import cz.stursa.speechnotes.data.FolderManager
 import cz.stursa.speechnotes.data.Note
 import cz.stursa.speechnotes.data.ReminderManager
+import cz.stursa.speechnotes.adapter.AttachmentAdapter
+import cz.stursa.speechnotes.data.Attachment
 import cz.stursa.speechnotes.databinding.ActivityNoteDetailBinding
 import cz.stursa.speechnotes.markdown.MarkdownRenderer
 import cz.stursa.speechnotes.service.SpeechRecordingService
@@ -61,6 +64,8 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
     private var selectedColor = 0
     private var backgroundService: SpeechRecordingService? = null
     private var serviceBound = false
+    private lateinit var attachmentAdapter: AttachmentAdapter
+    private var cameraPhotoUri: Uri? = null
 
     private val dateTimeFormat = SimpleDateFormat("d.M.yyyy HH:mm", Locale("cs", "CZ"))
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -69,6 +74,34 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) toggleRecording() else {
                 Toast.makeText(this, R.string.permission_required, Toast.LENGTH_LONG).show()
+            }
+        }
+
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                showReminderPicker()
+            } else {
+                Toast.makeText(this, "Bez opravneni k notifikacim pripominky nebudou fungovat", Toast.LENGTH_LONG).show()
+            }
+        }
+
+    private val pickFileLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let { handlePickedFile(it) }
+        }
+
+    private val takePhotoLauncher =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                cameraPhotoUri?.let { saveAttachmentFromUri(it, "image", "foto_${System.currentTimeMillis()}.jpg") }
+            }
+        }
+
+    private val cameraPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) launchCamera() else {
+                Toast.makeText(this, "Opravneni ke kamere je nutne", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -128,6 +161,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         setupColorPicker()
         setupResumeButton()
         setupReminderBanner()
+        setupAttachments()
         loadNote()
     }
 
@@ -137,7 +171,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
             when (menuItem.itemId) {
                 R.id.action_share -> { shareCurrentNote(); true }
                 R.id.action_timestamp -> { insertTimestamp(); true }
-                R.id.action_set_reminder -> { showReminderPicker(); true }
+                R.id.action_set_reminder -> { ensureNotificationPermissionAndShowPicker(); true }
                 R.id.action_send_calendar -> { sendToCalendar(); true }
                 R.id.action_send_chat -> { sendToChat(); true }
                 R.id.action_markdown_preview -> { toggleMarkdownPreview(); true }
@@ -268,6 +302,7 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
                     }
                     binding.toolbar.title = getString(R.string.edit_note)
                     updateReminderBanner()
+                    loadAttachments()
                 }
             }
         } else {
@@ -349,6 +384,28 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
     }
 
     // --- Reminder ---
+
+    private fun ensureNotificationPermissionAndShowPicker() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                return
+            }
+        }
+        // Check exact alarm permission on Android 12+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(android.app.AlarmManager::class.java)
+            if (!alarmManager.canScheduleExactAlarms()) {
+                Toast.makeText(this, "Povolte presne alarmy v nastaveni", Toast.LENGTH_LONG).show()
+                val intent = Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                startActivity(intent)
+                return
+            }
+        }
+        showReminderPicker()
+    }
 
     private fun setupReminderBanner() {
         binding.btnEditReminder.setOnClickListener { showReminderPicker() }
@@ -699,6 +756,155 @@ class NoteDetailActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResu
         } catch (e: Exception) {
             Toast.makeText(this, "Chyba exportu: ${e.message}", Toast.LENGTH_LONG).show()
         }
+    }
+
+    // --- Attachments ---
+
+    private fun setupAttachments() {
+        attachmentAdapter = AttachmentAdapter(
+            onAttachmentClick = { attachment -> openAttachment(attachment) },
+            onDeleteClick = { attachment -> deleteAttachment(attachment) }
+        )
+        binding.recyclerAttachments.apply {
+            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this@NoteDetailActivity)
+            adapter = attachmentAdapter
+        }
+        binding.btnAddAttachment.setOnClickListener { showAttachmentPicker() }
+    }
+
+    private fun loadAttachments() {
+        val noteId = currentNote?.id ?: return
+        viewModel.getAttachmentsForNote(noteId)?.observe(this) { attachments ->
+            attachmentAdapter.submitList(attachments)
+            binding.textAttachmentsLabel.text = if (attachments.isEmpty()) "Prilohy" else "Prilohy (${attachments.size})"
+        }
+    }
+
+    private fun showAttachmentPicker() {
+        if (currentNote == null) {
+            Toast.makeText(this, "Nejprve ulozte poznamku", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val options = arrayOf(
+            "\uD83D\uDCF7 Vyfotit",
+            "\uD83D\uDDBC Vybrat obrazek",
+            "\uD83C\uDFA4 Vybrat zvuk",
+            "\uD83C\uDFA5 Vybrat video",
+            "\uD83D\uDCC1 Vybrat soubor"
+        )
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Pridat prilohu")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> checkCameraPermission()
+                    1 -> pickFileLauncher.launch("image/*")
+                    2 -> pickFileLauncher.launch("audio/*")
+                    3 -> pickFileLauncher.launch("video/*")
+                    4 -> pickFileLauncher.launch("*/*")
+                }
+            }
+            .show()
+    }
+
+    private fun checkCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            launchCamera()
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun launchCamera() {
+        val photoFile = File(getExternalFilesDir("attachments"), "foto_${System.currentTimeMillis()}.jpg")
+        photoFile.parentFile?.mkdirs()
+        cameraPhotoUri = androidx.core.content.FileProvider.getUriForFile(
+            this, "$packageName.fileprovider", photoFile
+        )
+        takePhotoLauncher.launch(cameraPhotoUri!!)
+    }
+
+    private fun handlePickedFile(uri: Uri) {
+        val mimeType = contentResolver.getType(uri) ?: ""
+        val type = when {
+            mimeType.startsWith("image") -> "image"
+            mimeType.startsWith("audio") -> "audio"
+            mimeType.startsWith("video") -> "video"
+            else -> "file"
+        }
+        val fileName = getFileNameFromUri(uri) ?: "${type}_${System.currentTimeMillis()}"
+        saveAttachmentFromUri(uri, type, fileName)
+    }
+
+    private fun getFileNameFromUri(uri: Uri): String? {
+        var name: String? = null
+        contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+            if (cursor.moveToFirst() && nameIndex >= 0) {
+                name = cursor.getString(nameIndex)
+            }
+        }
+        return name
+    }
+
+    private fun saveAttachmentFromUri(uri: Uri, type: String, fileName: String) {
+        val noteId = currentNote?.id ?: return
+        lifecycleScope.launch {
+            try {
+                val attachDir = File(getExternalFilesDir("attachments"), "$noteId")
+                attachDir.mkdirs()
+                val destFile = File(attachDir, fileName)
+
+                contentResolver.openInputStream(uri)?.use { input ->
+                    destFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+
+                val attachment = Attachment(
+                    noteId = noteId,
+                    type = type,
+                    fileName = fileName,
+                    filePath = destFile.absolutePath,
+                    mimeType = contentResolver.getType(uri) ?: "",
+                    fileSize = destFile.length()
+                )
+                viewModel.insertAttachment(attachment)
+                Toast.makeText(this@NoteDetailActivity, "Priloha pridana", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(this@NoteDetailActivity, "Chyba: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun openAttachment(attachment: Attachment) {
+        try {
+            val file = File(attachment.filePath)
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                this, "$packageName.fileprovider", file
+            )
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, attachment.mimeType.ifEmpty { "*/*" })
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Nelze otevrit prilohu", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun deleteAttachment(attachment: Attachment) {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Smazat prilohu")
+            .setMessage("Opravdu smazat '${attachment.fileName}'?")
+            .setPositiveButton("Smazat") { _, _ ->
+                viewModel.deleteAttachment(attachment.id)
+                File(attachment.filePath).delete()
+                Toast.makeText(this, "Priloha smazana", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun confirmDelete() {

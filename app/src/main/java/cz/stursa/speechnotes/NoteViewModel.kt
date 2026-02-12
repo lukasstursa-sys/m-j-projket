@@ -163,4 +163,18 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     fun setReminder(noteId: Long, reminderTime: Long) {
         viewModelScope.launch { repository.setReminder(noteId, reminderTime) }
     }
+
+    // Attachments
+    fun getAttachmentsForNote(noteId: Long) = repository.getAttachmentsForNote(noteId)
+
+    fun insertAttachment(attachment: cz.stursa.speechnotes.data.Attachment, onComplete: (Long) -> Unit = {}) {
+        viewModelScope.launch {
+            val id = repository.insertAttachment(attachment)
+            onComplete(id)
+        }
+    }
+
+    fun deleteAttachment(id: Long) {
+        viewModelScope.launch { repository.deleteAttachment(id) }
+    }
 }

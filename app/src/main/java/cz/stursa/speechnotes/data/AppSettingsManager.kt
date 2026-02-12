@@ -15,6 +15,7 @@ class AppSettingsManager(context: Context) {
         const val VIEW_MODE_LIST = 0
         const val VIEW_MODE_COMPACT = 1
         const val VIEW_MODE_GRID = 2
+        const val VIEW_MODE_STAGGERED = 3
 
         const val SORT_BY_UPDATED = 0
         const val SORT_BY_CREATED = 1

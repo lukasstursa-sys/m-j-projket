@@ -2,7 +2,7 @@ package cz.stursa.speechnotes.data
 
 import androidx.lifecycle.LiveData
 
-class NoteRepository(private val noteDao: NoteDao) {
+class NoteRepository(private val noteDao: NoteDao, private val attachmentDao: AttachmentDao? = null) {
 
     val allNotes: LiveData<List<Note>> = noteDao.getAllNotes()
     val allLabels: LiveData<List<String>> = noteDao.getAllLabels()
@@ -40,4 +40,11 @@ class NoteRepository(private val noteDao: NoteDao) {
     // Reminders
     suspend fun setReminder(id: Long, reminderTime: Long) = noteDao.setReminder(id, reminderTime)
     suspend fun getNoteCountByFolder(folder: String): Int = noteDao.getNoteCountByFolder(folder)
+
+    // Attachments
+    fun getAttachmentsForNote(noteId: Long) = attachmentDao?.getAttachmentsForNote(noteId)
+    suspend fun getAttachmentsForNoteSync(noteId: Long) = attachmentDao?.getAttachmentsForNoteSync(noteId) ?: emptyList()
+    suspend fun insertAttachment(attachment: Attachment) = attachmentDao?.insert(attachment) ?: -1
+    suspend fun deleteAttachment(id: Long) = attachmentDao?.deleteById(id)
+    suspend fun getAttachmentCount(noteId: Long) = attachmentDao?.getAttachmentCount(noteId) ?: 0
 }

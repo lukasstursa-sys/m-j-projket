@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import cz.stursa.speechnotes.R
 import cz.stursa.speechnotes.data.Note
 import cz.stursa.speechnotes.databinding.ItemNoteBinding
 import java.text.SimpleDateFormat
@@ -19,11 +20,11 @@ class NoteAdapter(
 ) : ListAdapter<Note, NoteAdapter.NoteViewHolder>(NoteDiffCallback()) {
 
     private val dateFormat = SimpleDateFormat("d. M. yyyy HH:mm", Locale("cs", "CZ"))
+    var layoutResId: Int = R.layout.item_note
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
-        val binding = ItemNoteBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
+        val view = LayoutInflater.from(parent.context).inflate(layoutResId, parent, false)
+        val binding = ItemNoteBinding.bind(view)
         return NoteViewHolder(binding)
     }
 
