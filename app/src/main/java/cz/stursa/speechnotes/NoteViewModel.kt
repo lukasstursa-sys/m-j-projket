@@ -17,55 +17,38 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedLabel = MutableLiveData<String?>()
     private val _selectedCategory = MutableLiveData<String?>()
     private val _searchQuery = MutableLiveData<String?>()
+    private val _filterTrigger = MutableLiveData(0)
 
     // Combined filter: search > category > label > all
-    val filteredNotes: LiveData<List<Note>> = MediatorLiveData<List<Note>>().apply {
-        var currentSource: LiveData<List<Note>>? = null
-
-        fun update() {
-            val query = _searchQuery.value
-            val label = _selectedLabel.value
-            val category = _selectedCategory.value
-
-            val newSource = when {
-                !query.isNullOrBlank() -> repository.searchNotes(query)
-                !category.isNullOrEmpty() -> repository.getNotesByCategory(category)
-                !label.isNullOrEmpty() -> repository.getNotesByLabel(label)
-                else -> repository.allNotes
-            }
-
-            if (newSource != currentSource) {
-                currentSource?.let { removeSource(it) }
-                currentSource = newSource
-                addSource(newSource) { value = it }
-            }
+    val filteredNotes: LiveData<List<Note>> = _filterTrigger.switchMap {
+        val query = _searchQuery.value
+        val label = _selectedLabel.value
+        val category = _selectedCategory.value
+        when {
+            !query.isNullOrBlank() -> repository.searchNotes(query)
+            !category.isNullOrEmpty() -> repository.getNotesByCategory(category)
+            !label.isNullOrEmpty() -> repository.getNotesByLabel(label)
+            else -> repository.allNotes
         }
-
-        addSource(_searchQuery) { update() }
-        addSource(_selectedLabel) { update() }
-        addSource(_selectedCategory) { update() }
-    }
-
-    init {
-        _selectedLabel.value = null
-        _selectedCategory.value = null
-        _searchQuery.value = null
     }
 
     fun setLabelFilter(label: String?) {
         _selectedCategory.value = null
         _searchQuery.value = null
         _selectedLabel.value = label
+        _filterTrigger.value = (_filterTrigger.value ?: 0) + 1
     }
 
     fun setCategoryFilter(category: String?) {
         _selectedLabel.value = null
         _searchQuery.value = null
         _selectedCategory.value = category
+        _filterTrigger.value = (_filterTrigger.value ?: 0) + 1
     }
 
     fun setSearchQuery(query: String?) {
         _searchQuery.value = query
+        _filterTrigger.value = (_filterTrigger.value ?: 0) + 1
     }
 
     suspend fun getNoteById(id: Long): Note? {
