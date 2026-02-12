@@ -52,7 +52,6 @@ class MainActivity : AppCompatActivity(), CzechSpeechRecognizer.SpeechResultList
         speechRecognizer = CzechSpeechRecognizer(this, this)
         backupManager = BackupManager(this)
 
-        loadDarkModeSetting()
         setupToolbar()
         setupRecyclerView()
         setupMicButton()

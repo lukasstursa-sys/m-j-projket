@@ -20,28 +20,30 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
 
     // Combined filter: search > category > label > all
     val filteredNotes: LiveData<List<Note>> = MediatorLiveData<List<Note>>().apply {
+        var currentSource: LiveData<List<Note>>? = null
+
         fun update() {
             val query = _searchQuery.value
             val label = _selectedLabel.value
             val category = _selectedCategory.value
 
-            val source = when {
+            val newSource = when {
                 !query.isNullOrBlank() -> repository.searchNotes(query)
                 !category.isNullOrEmpty() -> repository.getNotesByCategory(category)
                 !label.isNullOrEmpty() -> repository.getNotesByLabel(label)
                 else -> repository.allNotes
             }
 
-            // Remove old sources and add new one
-            addSource(source) { value = it }
+            if (newSource != currentSource) {
+                currentSource?.let { removeSource(it) }
+                currentSource = newSource
+                addSource(newSource) { value = it }
+            }
         }
 
         addSource(_searchQuery) { update() }
         addSource(_selectedLabel) { update() }
         addSource(_selectedCategory) { update() }
-
-        // Initial load
-        addSource(repository.allNotes) { value = it }
     }
 
     init {
